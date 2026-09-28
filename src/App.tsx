@@ -67,6 +67,7 @@ function App() {
   const [demoState, setDemoState] = useState(() => getDemoState())
   const [customerSubView, setCustomerSubView] = useState<'home' | 'catalog' | 'product' | 'cart' | 'checkout' | 'order-confirmation' | 'quote' | 'account'>('home')
   const [selectedProductId, setSelectedProductId] = useState<number>(1)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [cart, setCart] = useState<CartItem[]>([])
   const [savedProducts, setSavedProducts] = useState<number[]>([])
   const [chatOpen, setChatOpen] = useState(true)
@@ -99,6 +100,29 @@ function App() {
   useEffect(() => {
     persistDemoState(demoState)
   }, [demoState])
+
+  useEffect(() => {
+    const shouldLockScroll = mobileMenuOpen || cartOpen
+    document.body.style.overflow = shouldLockScroll ? 'hidden' : ''
+    document.body.style.touchAction = shouldLockScroll ? 'none' : ''
+
+    return () => {
+      document.body.style.overflow = ''
+      document.body.style.touchAction = ''
+    }
+  }, [mobileMenuOpen, cartOpen])
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setMobileMenuOpen(false)
+        setCartOpen(false)
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [])
 
   useEffect(() => {
     if (!cartMessage) return
@@ -381,21 +405,66 @@ function App() {
           </div>
         </div>
 
-        <nav className="nav">
-          <button type="button" className="nav-link" onClick={() => { setCustomerSubView('home'); setActiveView('site') }}>Home</button>
-          <button type="button" className="nav-link" onClick={() => { setCustomerSubView('catalog'); setActiveView('site') }}>Catalog</button>
-          <button type="button" className="nav-link" onClick={() => setCustomerSubView('account')}>Account</button>
-          <button type="button" className="nav-link" onClick={() => setActiveView('admin')}>Admin</button>
+        <nav className="nav" aria-label="Main navigation">
+          <button type="button" className="nav-link" onClick={() => { setCustomerSubView('home'); setActiveView('site'); setMobileMenuOpen(false) }}>Home</button>
+          <button type="button" className="nav-link" onClick={() => { setCustomerSubView('catalog'); setActiveView('site'); setMobileMenuOpen(false) }}>Shop</button>
+          <button type="button" className="nav-link" onClick={() => { setCustomerSubView('quote'); setActiveView('site'); setMobileMenuOpen(false) }}>Custom Furniture</button>
+          <button type="button" className="nav-link" onClick={() => { setCustomerSubView('home'); setActiveView('site'); setMobileMenuOpen(false) }}>Projects</button>
+          <button type="button" className="nav-link" onClick={() => { setCustomerSubView('home'); setActiveView('site'); setMobileMenuOpen(false) }}>About</button>
+          <button type="button" className="nav-link" onClick={() => { setCustomerSubView('home'); setActiveView('site'); setMobileMenuOpen(false) }}>Contact</button>
+        </nav>
+
+        <div className="nav-actions desktop-actions">
+          <button className="secondary-btn" onClick={() => { setCustomerSubView('quote'); setActiveView('site') }}>Request a Quote</button>
+          <button className="primary-btn" onClick={() => setActiveView('admin')}>Business Portal</button>
+        </div>
+
+        <div className="mobile-header-actions">
           <button type="button" className="nav-link cart-pill" onClick={() => { setCartOpen(true); setCustomerSubView('cart') }}>
             Cart ({cart.reduce((sum, item) => sum + item.quantity, 0)})
           </button>
-        </nav>
-
-        <div className="nav-actions">
-          <button className="secondary-btn" onClick={() => setCustomerSubView('quote')}>Request a Quote</button>
-          <button className="primary-btn" onClick={() => setActiveView('admin')}>Business Portal</button>
+          <button
+            type="button"
+            className={`mobile-menu-button ${mobileMenuOpen ? 'is-open' : ''}`}
+            aria-label="Toggle navigation menu"
+            aria-expanded={mobileMenuOpen}
+            onClick={() => setMobileMenuOpen((current) => !current)}
+          >
+            <span />
+            <span />
+            <span />
+          </button>
         </div>
       </header>
+
+      {mobileMenuOpen && (
+        <>
+          <button type="button" className="mobile-menu-backdrop" aria-label="Close menu" onClick={() => setMobileMenuOpen(false)} />
+          <aside className="mobile-menu-panel" role="dialog" aria-modal="true" aria-label="Mobile navigation">
+            <div className="mobile-menu-header">
+              <div className="brand-wrap">
+                <div className="brand-mark">CF</div>
+                <div>
+                  <div className="brand-name">Craft & Form</div>
+                  <div className="brand-subtitle">Pampanga Furniture Co.</div>
+                </div>
+              </div>
+              <button type="button" className="close-menu" aria-label="Close menu" onClick={() => setMobileMenuOpen(false)}>×</button>
+            </div>
+
+            <nav className="mobile-menu-nav" aria-label="Mobile navigation links">
+              <button type="button" className="mobile-menu-link" onClick={() => { setCustomerSubView('home'); setActiveView('site'); setMobileMenuOpen(false) }}>Home</button>
+              <button type="button" className="mobile-menu-link" onClick={() => { setCustomerSubView('catalog'); setActiveView('site'); setMobileMenuOpen(false) }}>Shop</button>
+              <button type="button" className="mobile-menu-link" onClick={() => { setCustomerSubView('quote'); setActiveView('site'); setMobileMenuOpen(false) }}>Custom Furniture</button>
+              <button type="button" className="mobile-menu-link" onClick={() => { setCustomerSubView('home'); setActiveView('site'); setMobileMenuOpen(false) }}>Projects</button>
+              <button type="button" className="mobile-menu-link" onClick={() => { setCustomerSubView('home'); setActiveView('site'); setMobileMenuOpen(false) }}>About</button>
+              <button type="button" className="mobile-menu-link" onClick={() => { setCustomerSubView('home'); setActiveView('site'); setMobileMenuOpen(false) }}>Contact</button>
+              <button type="button" className="mobile-menu-link" onClick={() => { setCustomerSubView('account'); setActiveView('site'); setMobileMenuOpen(false) }}>Account</button>
+              <button type="button" className="mobile-menu-link" onClick={() => { setCustomerSubView('quote'); setActiveView('site'); setMobileMenuOpen(false) }}>Request a Quote</button>
+            </nav>
+          </aside>
+        </>
+      )}
 
       {activeView === 'site' ? (
         <main className="site-view">
