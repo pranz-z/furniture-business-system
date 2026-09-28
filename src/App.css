@@ -412,11 +412,32 @@ button {
   padding: 28px 18px;
   border: 1px solid rgba(51, 41, 31, 0.08);
   min-height: 190px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
-.category-icon {
-  font-size: 2rem;
+.category-card:hover,
+.category-card:focus-visible {
+  transform: translateY(-2px);
+  border-color: rgba(17, 17, 17, 0.18);
+  box-shadow: 0 18px 28px rgba(34, 26, 22, 0.08);
+}
+
+.category-icon-wrap {
+  width: 58px;
+  height: 58px;
+  display: grid;
+  place-items: center;
   margin-bottom: 14px;
+  border-radius: 16px;
+  background: #f0e7df;
+  color: #111111;
+  border: 1px solid rgba(17, 17, 17, 0.08);
+}
+
+.category-icon-wrap svg {
+  width: 32px;
+  height: 32px;
+  display: block;
 }
 
 .category-card h3 {

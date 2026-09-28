@@ -1,13 +1,13 @@
 import type { Appointment, Category, Customer, InquiryThread, Order, Product, Project, QuotationRequest, Review } from '../types'
 
 export const categories: Category[] = [
-  { name: 'Living Room', icon: '🛋️', description: 'Sofas, coffee tables, and statement pieces for everyday comfort.' },
-  { name: 'Dining', icon: '🍽️', description: 'Wooden dining sets crafted for family meals and hosting guests.' },
-  { name: 'Bedroom', icon: '🛏️', description: 'Solid wood beds and bedroom storage designed for rest and organization.' },
-  { name: 'Office', icon: '💼', description: 'Executive desks, storage cabinets, and ergonomic seating.' },
-  { name: 'Cabinets', icon: '🗄️', description: 'Custom cabinetry built around your home or commercial space.' },
-  { name: 'Outdoor', icon: '🌿', description: 'Durable outdoor seating and patio furniture built for Pampanga weather.' },
-  { name: 'Custom Furniture', icon: '✦', description: 'Tailored designs for homes, offices, cafes, and commercial spaces.' },
+  { name: 'Living Room', icon: 'sofa', description: 'Sofas, coffee tables, and statement pieces for everyday comfort.' },
+  { name: 'Dining', icon: 'dining', description: 'Wooden dining sets crafted for family meals and hosting guests.' },
+  { name: 'Bedroom', icon: 'bed', description: 'Solid wood beds and bedroom storage designed for rest and organization.' },
+  { name: 'Office', icon: 'desk', description: 'Executive desks, storage cabinets, and ergonomic seating.' },
+  { name: 'Cabinets', icon: 'cabinet', description: 'Custom cabinetry built around your home or commercial space.' },
+  { name: 'Outdoor', icon: 'outdoor', description: 'Durable outdoor seating and patio furniture built for Pampanga weather.' },
+  { name: 'Custom Furniture', icon: 'custom', description: 'Tailored designs for homes, offices, cafes, and commercial spaces.' },
 ]
 
 export const products: Product[] = [

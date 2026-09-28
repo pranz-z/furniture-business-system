@@ -62,6 +62,82 @@ const defaultAppointmentForm = {
   purpose: 'Product Viewing',
 }
 
+const CategoryIcon = ({ icon }: { icon: string }) => {
+  const sharedProps = {
+    viewBox: '0 0 36 36',
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 1.8,
+    strokeLinecap: 'round' as const,
+    strokeLinejoin: 'round' as const,
+    'aria-hidden': true,
+  }
+
+  switch (icon) {
+    case 'sofa':
+      return (
+        <svg {...sharedProps} width="36" height="36">
+          <path d="M8 19.5h20a3 3 0 0 1 3 3v3H5v-3a3 3 0 0 1 3-3Z" />
+          <path d="M10 19.5V14a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v5.5" />
+          <path d="M8 25.5v2.5M28 25.5v2.5M12 13.5h12" />
+        </svg>
+      )
+    case 'dining':
+      return (
+        <svg {...sharedProps} width="36" height="36">
+          <path d="M7 13.5h22M10.5 13.5V10.5h15v3M9 18h18a2 2 0 0 1 2 2v2H7v-2a2 2 0 0 1 2-2Z" />
+          <path d="M12 23v5M24 23v5M7 26.5h22" />
+        </svg>
+      )
+    case 'bed':
+      return (
+        <svg {...sharedProps} width="36" height="36">
+          <path d="M6 21.5h24a2 2 0 0 1 2 2V25H4v-1.5a2 2 0 0 1 2-2Z" />
+          <path d="M9 19V12.5a2.5 2.5 0 0 1 2.5-2.5h13a2.5 2.5 0 0 1 2.5 2.5V19" />
+          <path d="M6 25v3M30 25v3M10 15.5h16" />
+        </svg>
+      )
+    case 'desk':
+      return (
+        <svg {...sharedProps} width="36" height="36">
+          <path d="M7 12.5h22a2 2 0 0 1 2 2v7H5v-7a2 2 0 0 1 2-2Z" />
+          <path d="M9 21.5V27M27 21.5V27M5 27h26" />
+          <path d="M13 12.5V8.5M23 12.5V8.5" />
+        </svg>
+      )
+    case 'cabinet':
+      return (
+        <svg {...sharedProps} width="36" height="36">
+          <path d="M9 8.5h18a2 2 0 0 1 2 2v17a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2v-17a2 2 0 0 1 2-2Z" />
+          <path d="M9 15.5h18M13.5 8.5v19M22.5 8.5v19" />
+        </svg>
+      )
+    case 'outdoor':
+      return (
+        <svg {...sharedProps} width="36" height="36">
+          <path d="M7 23.5h22a2 2 0 0 1 2 2v2H5v-2a2 2 0 0 1 2-2Z" />
+          <path d="M12 23.5V15.5a1.5 1.5 0 0 1 1.5-1.5h9a1.5 1.5 0 0 1 1.5 1.5v8" />
+          <path d="M9 14.5h18M10 10.5l3 3M26 10.5l-3 3" />
+        </svg>
+      )
+    case 'custom':
+      return (
+        <svg {...sharedProps} width="36" height="36">
+          <path d="M9 27.5V21M18 27.5V10.5M27 27.5V16.5" />
+          <path d="M7 19.5h4M16 8.5h4M25 14.5h4" />
+          <path d="M9 8.5l3 3 6-6 9 9" />
+        </svg>
+      )
+    default:
+      return (
+        <svg {...sharedProps} width="36" height="36">
+          <circle cx="18" cy="18" r="10" />
+          <path d="M18 8.5v19M8.5 18h19" />
+        </svg>
+      )
+  }
+}
+
 function App() {
   const [activeView, setActiveView] = useState<'site' | 'admin'>('site')
   const [demoState, setDemoState] = useState(() => getDemoState())
@@ -503,7 +579,9 @@ function App() {
                 <div className="category-grid">
                   {categories.map((category) => (
                     <button type="button" key={category.name} className="category-card category-button" onClick={() => { setCategoryFilter(category.name); setCustomerSubView('catalog') }}>
-                      <div className="category-icon">{category.icon}</div>
+                      <div className="category-icon-wrap" aria-hidden="true">
+                        <CategoryIcon icon={category.icon} />
+                      </div>
                       <h3>{category.name}</h3>
                       <p>{category.description}</p>
                     </button>
