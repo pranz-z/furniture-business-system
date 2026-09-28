@@ -365,26 +365,6 @@ function App() {
     setDemoState((current) => updateOrderStatus(current, orderNumber, status))
   }
 
-  const resetDemo = () => {
-    const initial = getDemoState()
-    localStorage.removeItem('craft-and-form-demo-state')
-    setDemoState(initial)
-    setCart([])
-    setSavedProducts([])
-    setCustomerSubView('home')
-    setOrderConfirmation(null)
-    setQuoteSuccess(null)
-    setQuoteSubmitted(false)
-    setAppointmentSubmitted(false)
-    setChatMessages([
-      { sender: 'assistant', text: 'Hello! How can we help you today?' },
-      { sender: 'customer', text: 'Magkano po yung Narra dining table?' },
-      { sender: 'assistant', text: 'According to our current catalog, the Narra Dining Table starts at ₱18,500. Final pricing may vary depending on size and customization.' },
-      { sender: 'customer', text: 'Pwede po custom size?' },
-      { sender: 'assistant', text: 'Yes. We can accommodate custom dimensions. I can help you request a quotation.' },
-    ])
-  }
-
   const accountOrders = demoState.orders.filter((entry) => entry.customer === customerName)
   const accountQuotes = demoState.quotations.filter((entry) => entry.customer === customerName)
   const accountAppointments = demoState.appointments.filter((entry) => entry.customer === customerName)
@@ -412,9 +392,8 @@ function App() {
         </nav>
 
         <div className="nav-actions">
-          <button className="secondary-btn" onClick={() => setActiveView('site')}>Customer View</button>
-          <button className="primary-btn" onClick={() => setActiveView('admin')}>Admin Dashboard</button>
-          <button className="ghost-btn reset-btn" onClick={resetDemo}>Reset Demo</button>
+          <button className="secondary-btn" onClick={() => setCustomerSubView('quote')}>Request a Quote</button>
+          <button className="primary-btn" onClick={() => setActiveView('admin')}>Business Portal</button>
         </div>
       </header>
 
@@ -1139,9 +1118,6 @@ function App() {
           )}
 
           <div className="chat-widget">
-            <button className="chat-toggle" onClick={() => setChatOpen((prev) => !prev)}>
-              {chatOpen ? 'Close chat' : 'Chat with us'}
-            </button>
             {chatOpen && (
               <div className="chat-panel">
                 <div className="chat-header">

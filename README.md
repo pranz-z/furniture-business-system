@@ -1,14 +1,14 @@
 # Furniture Business Platform
 
-This project is a furniture business demo and operations platform designed to connect the customer shopping journey with internal sales, quotation, appointment, and order management workflows. It combines storefront browsing, custom product requests, customer account experiences, and an administrative dashboard into a single interactive interface.
+This project is a front-end furniture business platform designed to connect the customer shopping experience with quotation, appointment, order, and internal business workflow management in one polished storefront experience.
 
 A modern furniture business platform designed to connect the customer shopping experience with quotation, appointment, order, inventory, and administrative workflows.
 
 ## Overview
 
-Furniture businesses often need more than a standard online store. They may sell fixed-price products alongside made-to-order and custom furniture, manage quote requests, coordinate showroom visits, handle customer inquiries, track order production stages, and maintain staff-facing operational visibility. This repository brings those workflows together in a single demo platform so that customer actions and business operations can be viewed in the same system.
+Furniture businesses often need more than a standard online store. They may sell fixed-price products alongside made-to-order and custom furniture, manage quote requests, coordinate showroom visits, handle customer inquiries, track order production stages, and maintain staff-facing operational visibility. This repository brings those workflows together in a single polished interface for a Pampanga-based furniture company.
 
-This implementation is built as a front-end business workflow prototype for a Pampanga, Philippines-based furniture company. It demonstrates how a customer can browse products, request a quote, book an appointment, place an order, and then see administrative updates reflected in the same shared state model.
+This implementation is built as a front-end business workflow experience for a furniture brand in Pampanga, Philippines. It showcases how a customer can browse products, request a quote, book an appointment, place an order, and track updates across the customer and admin experience.
 
 ## Technology Stack
 
@@ -17,11 +17,11 @@ This repository currently uses:
 - React 19
 - TypeScript
 - Vite
-- CSS for the custom interface styling
+- CSS for custom interface styling
 - Browser localStorage for state persistence
-- Mock data for catalog, customer, quotation, order, and inquiry records
+- Local mock data for catalog, customer, quotation, order, and inquiry records
 
-This is not a deployed production backend or a live multi-user system. The current application is a local interactive demo designed to simulate the flow of a furniture business platform in the browser.
+This is not a deployed production backend or a live multi-user system. The current application is a local front-end business workflow experience designed for presentation, interaction, and stakeholder review.
 
 ## Key Features
 
@@ -91,9 +91,9 @@ Delivery and follow-up are coordinated by the business
 ↓
 Customer review and feedback complete the cycle
 
-## Interactive Demo
+## Interactive Workflow
 
-This project is designed around connected customer and admin workflows in the same browser-based application. The underlying state is managed in the shared demo service layer and persisted in browser localStorage, which lets the interface behave like a connected system without requiring a real backend database or API.
+This project is designed around connected customer and admin workflows in the same browser-based application. The underlying state is managed in a shared service layer and persisted in browser localStorage, which allows the interface to behave like a connected business system without requiring a real backend database or API.
 
 Examples of the implemented interaction model:
 
@@ -106,10 +106,10 @@ Examples of the implemented interaction model:
 Current implementation characteristics:
 
 - Shared state is managed in the browser via localStorage
-- Mock data is used as the baseline business data
+- Local business data is used as the baseline for the storefront and orders experience
 - No real backend API, database, authentication, or production deployment is implemented in this repository
 
-## Screenshots / Demo
+## Screenshots / Preview
 
 Screenshots are not currently included in the repository, but the following sections are represented in the current interface:
 
@@ -204,7 +204,7 @@ npm run lint     # Run the project linter
 
 ## Scope and Limitations
 
-This repository demonstrates a realistic furniture business workflow in a browser-based prototype. It is intended for product presentation, UI flow validation, stakeholder walkthroughs, and business process storytelling.
+This repository presents a realistic furniture business workflow in a browser-based storefront experience. It is intended for product presentation, UI flow validation, stakeholder walkthroughs, and business process storytelling.
 
 The current application does not include:
 
@@ -234,4 +234,4 @@ The following items are intended as future enhancements and are not currently im
 
 ## Summary
 
-This project demonstrates how a furniture business can unify the customer experience and internal operations in a single digital workflow. It is positioned as a polished front-end prototype for product discovery, quoting, appointments, orders, and admin management, with the shared-state interaction model intentionally designed to show how customer actions and operational updates can work together in one system.
+This project shows how a furniture business can unify the customer experience and internal operations in a single digital workflow. It is positioned as a polished front-end storefront and business workflow experience for product discovery, quoting, appointments, orders, and admin management, with the shared-state interaction model intentionally designed to show how customer actions and operational updates can work together in one system.
