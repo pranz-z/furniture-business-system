@@ -1,3 +1,7 @@
+/**
+ * @deprecated Use customerSupportService.sendSupportMessage for live Gemini-backed chat.
+ * Kept as a tiny offline fallback helper for non-AI UI paths.
+ */
 export function getAiReply(message: string, productName?: string): string {
   const normalized = message.toLowerCase()
 
@@ -23,10 +27,6 @@ export function getAiReply(message: string, productName?: string): string {
 
   if (normalized.includes('lead time') || normalized.includes('how long') || normalized.includes('custom order')) {
     return 'Most custom furniture orders take around 4 to 8 weeks depending on the size, material, and finishing requirements.'
-  }
-
-  if (normalized.includes('sofa') || normalized.includes('cabinets') || normalized.includes('bed')) {
-    return 'We offer made-to-order solutions for sofas, bedroom sets, and cabinetry. We can help you choose the right material and finish for your space.'
   }
 
   return 'Thank you for reaching out. Our team can help with pricing, custom sizes, finish options, showroom visits, and delivery for Pampanga homes and businesses.'

@@ -1,7 +1,11 @@
-import { useEffect, useMemo, useState, type FormEvent } from 'react'
+import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
 import './App.css'
 import { adminSalesData, categories, inquiryVolumeData, popularProducts, projects } from './data/mockData'
-import { getAiReply } from './services/aiService'
+import {
+  buildChatHistory,
+  sendSupportMessage,
+  type ChatAction,
+} from './services/customerSupportService'
 import {
   addAppointmentRequest,
   addQuoteRequest,
@@ -13,6 +17,27 @@ import {
   updateQuoteStatus,
 } from './services/demoService'
 import type { Appointment, InquiryThread, Order, Product, QuotationRequest } from './types'
+
+type ChatMessage = {
+  sender: 'customer' | 'assistant'
+  text: string
+  actions?: ChatAction[]
+}
+
+type ChatStatus = 'idle' | 'sending' | 'error'
+
+const SUGGESTED_QUESTIONS = [
+  'Do you make custom furniture?',
+  'How can I request a quotation?',
+  'Do you deliver around Pampanga?',
+  'Can I customize the size?',
+  'How long do custom orders take?',
+  'Where is your showroom?',
+]
+
+const INITIAL_CHAT_MESSAGES: ChatMessage[] = [
+  { sender: 'assistant', text: 'Hello! How can we help you today?' },
+]
 
 type CustomerTab = 'overview' | 'orders' | 'quotes' | 'appointments' | 'messages' | 'saved' | 'notifications' | 'profile'
 type CartItem = { productId: number; quantity: number }
@@ -146,16 +171,15 @@ function App() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [cart, setCart] = useState<CartItem[]>([])
   const [savedProducts, setSavedProducts] = useState<number[]>([])
-  const [chatOpen, setChatOpen] = useState(true)
+  const [chatOpen, setChatOpen] = useState(false)
   const [chatMode, setChatMode] = useState<'ai' | 'human'>('ai')
-  const [chatMessages, setChatMessages] = useState([
-    { sender: 'assistant', text: 'Hello! How can we help you today?' },
-    { sender: 'customer', text: 'Magkano po yung Narra dining table?' },
-    { sender: 'assistant', text: 'According to our current catalog, the Narra Dining Table starts at ₱18,500. Final pricing may vary depending on size and customization.' },
-    { sender: 'customer', text: 'Pwede po custom size?' },
-    { sender: 'assistant', text: 'Yes. We can accommodate custom dimensions. I can help you request a quotation.' },
-  ])
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>(INITIAL_CHAT_MESSAGES)
   const [chatInput, setChatInput] = useState('')
+  const [chatStatus, setChatStatus] = useState<ChatStatus>('idle')
+  const [chatError, setChatError] = useState('')
+  const [chatProduct, setChatProduct] = useState<Product | null>(null)
+  const chatBodyRef = useRef<HTMLDivElement | null>(null)
+  const chatSendingRef = useRef(false)
   const [cartMessage, setCartMessage] = useState('')
   const [checkoutForm, setCheckoutForm] = useState(defaultCheckoutForm)
   const [quoteForm, setQuoteForm] = useState(defaultQuoteForm)
@@ -178,7 +202,7 @@ function App() {
   }, [demoState])
 
   useEffect(() => {
-    const shouldLockScroll = mobileMenuOpen || cartOpen
+    const shouldLockScroll = mobileMenuOpen || cartOpen || chatOpen
     document.body.style.overflow = shouldLockScroll ? 'hidden' : ''
     document.body.style.touchAction = shouldLockScroll ? 'none' : ''
 
@@ -186,19 +210,25 @@ function App() {
       document.body.style.overflow = ''
       document.body.style.touchAction = ''
     }
-  }, [mobileMenuOpen, cartOpen])
+  }, [mobileMenuOpen, cartOpen, chatOpen])
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         setMobileMenuOpen(false)
         setCartOpen(false)
+        setChatOpen(false)
       }
     }
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [])
+
+  useEffect(() => {
+    if (!chatOpen || !chatBodyRef.current) return
+    chatBodyRef.current.scrollTop = chatBodyRef.current.scrollHeight
+  }, [chatMessages, chatStatus, chatOpen])
 
   useEffect(() => {
     if (!cartMessage) return
@@ -306,30 +336,145 @@ function App() {
     setSavedProducts((current) => (current.includes(productId) ? current.filter((id) => id !== productId) : [...current, productId]))
   }
 
-  const handleSendMessage = () => {
-    const trimmed = chatInput.trim()
-    if (!trimmed) return
+  const showCustomerMessages = chatMessages.filter((message) => message.sender === 'customer')
+  const showSuggestions = chatMode === 'ai' && showCustomerMessages.length === 0 && chatStatus !== 'sending'
 
-    setChatMessages((prev) => [...prev, { sender: 'customer', text: trimmed }])
-    const reply = chatMode === 'ai' ? getAiReply(trimmed, selectedProduct?.name) : 'Connecting you with our customer service team... Our admin team will review your message in the dashboard.'
-    setTimeout(() => {
-      setChatMessages((prev) => [...prev, { sender: 'assistant', text: reply }])
-    }, 180)
+  const handleChatAction = (action: ChatAction) => {
+    if (action === 'quote') {
+      setChatOpen(false)
+      setQuoteSubmitted(false)
+      if (chatProduct) {
+        setSelectedProductId(chatProduct.id)
+        setQuoteForm((prev) => ({ ...prev, productName: chatProduct.name }))
+      }
+      setCustomerSubView('quote')
+      return
+    }
+
+    if (action === 'appointment') {
+      setChatOpen(false)
+      setAppointmentSubmitted(false)
+      setAccountTab('appointments')
+      setCustomerSubView('account')
+      return
+    }
+
+    if (action === 'human') {
+      handleTalkToStaff()
+      return
+    }
+
+    if (action === 'contact') {
+      setChatOpen(false)
+      setCustomerSubView('home')
+      window.setTimeout(() => {
+        document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }, 50)
+    }
+  }
+
+  const sendChatMessage = async (rawMessage: string) => {
+    const trimmed = rawMessage.trim()
+    if (!trimmed || chatSendingRef.current) return
+
+    if (chatMode === 'human') {
+      setChatMessages((prev) => [
+        ...prev,
+        { sender: 'customer', text: trimmed },
+        {
+          sender: 'assistant',
+          text: 'Thanks for your message. Our customer service team has been notified and will follow up from the business portal.',
+          actions: ['contact'],
+        },
+      ])
+      setChatInput('')
+      setChatError('')
+      return
+    }
+
+    chatSendingRef.current = true
+    setChatStatus('sending')
+    setChatError('')
     setChatInput('')
+
+    const history = buildChatHistory(chatMessages)
+    setChatMessages((prev) => [...prev, { sender: 'customer', text: trimmed }])
+
+    const result = await sendSupportMessage({
+      message: trimmed,
+      history,
+      product: chatProduct,
+    })
+
+    if (result.success) {
+      setChatMessages((prev) => [
+        ...prev,
+        {
+          sender: 'assistant',
+          text: result.message,
+          actions: result.actions,
+        },
+      ])
+      setChatStatus('idle')
+    } else {
+      setChatMessages((prev) => [
+        ...prev,
+        {
+          sender: 'assistant',
+          text: result.message,
+          actions: result.actions,
+        },
+      ])
+      setChatError(result.message)
+      setChatStatus('error')
+    }
+
+    chatSendingRef.current = false
+  }
+
+  const handleSendMessage = () => {
+    void sendChatMessage(chatInput)
   }
 
   const handleAskAboutProduct = () => {
-    const productName = selectedProduct?.name ?? 'Narra Dining Table'
-    const text = `Hi! I'm interested in the ${productName}.`
-    setChatOpen(true)
+    if (!selectedProduct) return
+
+    setChatProduct(selectedProduct)
     setChatMode('ai')
-    setChatMessages((prev) => [...prev, { sender: 'customer', text }, { sender: 'assistant', text: getAiReply(text, productName) }])
+    setChatOpen(true)
+    setChatStatus('idle')
+    setChatError('')
+    setChatMessages([
+      {
+        sender: 'assistant',
+        text: `You're asking about: ${selectedProduct.name}. What would you like to know?`,
+      },
+    ])
   }
 
   const handleTalkToStaff = () => {
     setChatOpen(true)
     setChatMode('human')
-    setChatMessages((prev) => [...prev, { sender: 'assistant', text: 'Connecting you with our customer service team...' }, { sender: 'assistant', text: 'A staff member has been notified. The admin dashboard will now receive the conversation.' }])
+    setChatStatus('idle')
+    setChatError('')
+    setChatMessages((prev) => [
+      ...prev,
+      {
+        sender: 'assistant',
+        text: 'Of course. I can connect you with our team for assistance.',
+        actions: ['contact'],
+      },
+      {
+        sender: 'assistant',
+        text: 'A staff member has been notified. You can also reach us through the contact details on this page.',
+        actions: ['contact'],
+      },
+    ])
+  }
+
+  const handleOpenChat = () => {
+    setChatOpen(true)
+    setChatMode('ai')
   }
 
   const handleQuoteSubmit = (event: FormEvent) => {
