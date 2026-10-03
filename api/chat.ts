@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import { handleChatRequest } from './_lib/chatHandler'
-import { MAX_BODY_BYTES, ValidationError, parseJsonBody } from './_lib/validation'
+import { handleChatRequest } from './_lib/chatHandler.js'
+import { MAX_BODY_BYTES, ValidationError, parseJsonBody } from './_lib/validation.js'
 
 function getClientKey(req: VercelRequest): string {
   const forwarded = req.headers['x-forwarded-for']

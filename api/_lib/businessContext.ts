@@ -1,5 +1,6 @@
-import { categories, products } from '../../src/data/mockData'
-import type { ProductContext } from './types'
+import { categories, products } from '../../src/data/mockData.js'
+import type { Category, Product } from '../../src/types.js'
+import type { ProductContext } from './types.js'
 
 export const businessContext = {
   businessName: 'Craft & Form',
@@ -46,14 +47,14 @@ export const businessContext = {
     leadTimes: 'Made-to-order and custom furniture commonly take several weeks. Use product lead-time data when available; otherwise the team confirms timing.',
     warranty: '1-year craftsmanship warranty is mentioned for product detail pages where applicable.',
   },
-  categories: categories.map((category) => ({
+  categories: categories.map((category: Category) => ({
     name: category.name,
     description: category.description,
   })),
 }
 
 export function getCatalogSummary() {
-  return products.map((product) => ({
+  return products.map((product: Product) => ({
     id: product.id,
     name: product.name,
     category: product.category,
@@ -66,12 +67,12 @@ export function getCatalogSummary() {
 }
 
 export function findProductById(id: number) {
-  return products.find((product) => product.id === id)
+  return products.find((product: Product) => product.id === id)
 }
 
 export function findProductByName(name: string) {
   const normalized = name.trim().toLowerCase()
-  return products.find((product) => product.name.toLowerCase() === normalized)
+  return products.find((product: Product) => product.name.toLowerCase() === normalized)
 }
 
 export function resolveProductContext(incoming?: ProductContext | null): ProductContext | null {

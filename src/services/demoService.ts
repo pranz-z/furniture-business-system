@@ -6,7 +6,7 @@ import {
   products as initialProducts,
   quotationRequests as initialQuotations,
   reviews as initialReviews,
-} from '../data/mockData'
+} from '../data/mockData.js'
 import type {
   Appointment,
   Customer,
@@ -16,7 +16,7 @@ import type {
   Product,
   QuotationRequest,
   Review,
-} from '../types'
+} from '../types.js'
 
 export type Activity = {
   id: string

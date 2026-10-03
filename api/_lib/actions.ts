@@ -1,4 +1,4 @@
-import type { ChatAction } from './types'
+import type { ChatAction } from './types.js'
 
 export function detectActions(message: string, reply: string): ChatAction[] {
   const combined = `${message}\n${reply}`.toLowerCase()

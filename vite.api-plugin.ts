@@ -1,7 +1,7 @@
 import type { Plugin } from 'vite'
 import { loadEnv } from 'vite'
-import { handleChatRequest } from './api/_lib/chatHandler'
-import { MAX_BODY_BYTES, ValidationError, parseJsonBody } from './api/_lib/validation'
+import { handleChatRequest } from './api/_lib/chatHandler.js'
+import { MAX_BODY_BYTES, ValidationError, parseJsonBody } from './api/_lib/validation.js'
 
 function readRequestBody(req: import('http').IncomingMessage): Promise<string> {
   return new Promise((resolve, reject) => {

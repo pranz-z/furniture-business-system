@@ -1,4 +1,4 @@
-import type { Appointment, Category, Customer, InquiryThread, Order, Product, Project, QuotationRequest, Review } from '../types'
+import type { Appointment, Category, Customer, InquiryThread, Order, Product, Project, QuotationRequest, Review } from '../types.js'
 
 export const categories: Category[] = [
   { name: 'Living Room', icon: 'sofa', description: 'Sofas, coffee tables, and statement pieces for everyday comfort.' },

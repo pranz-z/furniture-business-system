@@ -441,7 +441,7 @@ function App() {
 
     setChatProduct(selectedProduct)
     setChatMode('ai')
-    setChatOpen(true)
+    handleOpenChat()
     setChatStatus('idle')
     setChatError('')
     setChatMessages([
@@ -453,7 +453,7 @@ function App() {
   }
 
   const handleTalkToStaff = () => {
-    setChatOpen(true)
+    handleOpenChat()
     setChatMode('human')
     setChatStatus('idle')
     setChatError('')
@@ -475,6 +475,8 @@ function App() {
   const handleOpenChat = () => {
     setChatOpen(true)
     setChatMode('ai')
+    setChatStatus('idle')
+    setChatError('')
   }
 
   const handleQuoteSubmit = (event: FormEvent) => {
@@ -1426,19 +1428,22 @@ function App() {
                     </div>
                   ))}
                 </div>
-                <div className="chat-suggestions">
-                  <button type="button" onClick={() => setChatInput('How much is this?')}>How much is this?</button>
-                  <button type="button" onClick={() => setChatInput('Can I change the size?')}>Can I change the size?</button>
-                  <button type="button" onClick={() => setChatInput('Do you deliver in Pampanga?')}>Do you deliver in Pampanga?</button>
-                  <button type="button" onClick={() => setChatInput('Where is your showroom?')}>Where is your showroom?</button>
-                </div>
+                {showSuggestions && (
+                  <div className="chat-suggestions">
+                    {SUGGESTED_QUESTIONS.map((question) => (
+                      <button key={question} type="button" onClick={() => setChatInput(question)}>{question}</button>
+                    ))}
+                  </div>
+                )}
+                {chatError && <div className="chat-error">{chatError}</div>}
                 <div className="chat-input-row">
                   <input value={chatInput} onChange={(event) => setChatInput(event.target.value)} placeholder="Type your message..." />
                   <button type="button" onClick={handleSendMessage}>Send</button>
                 </div>
                 <div className="chat-footer-actions">
-                  <button type="button" className="secondary-btn" onClick={() => setCustomerSubView('quote')}>Request Custom Quote</button>
-                  <button type="button" className="ghost-btn" onClick={handleTalkToStaff}>Talk to a Staff Member</button>
+                  <button type="button" className="secondary-btn" onClick={() => handleChatAction('quote')}>Request Custom Quote</button>
+                  <button type="button" className="ghost-btn" onClick={() => handleChatAction('appointment')}>Book a Showroom Visit</button>
+                  <button type="button" className="ghost-btn" onClick={() => handleChatAction('human')}>Talk to a Staff Member</button>
                 </div>
               </div>
             )}

@@ -1,4 +1,4 @@
-import type { ChatHistoryMessage, ChatRequestBody, ProductContext } from './types'
+import type { ChatHistoryMessage, ChatRequestBody, ProductContext } from './types.js'
 
 export const MAX_MESSAGE_LENGTH = 2000
 export const MAX_HISTORY_MESSAGES = 16

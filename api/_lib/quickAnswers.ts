@@ -1,5 +1,5 @@
-import { businessContext } from './businessContext'
-import type { ChatAction, ProductContext } from './types'
+import { businessContext } from './businessContext.js'
+import type { ChatAction, ProductContext } from './types.js'
 
 type QuickAnswer = {
   message: string

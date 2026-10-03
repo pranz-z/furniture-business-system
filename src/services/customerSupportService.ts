@@ -1,4 +1,4 @@
-import type { ChatAction, ChatApiResponse, ChatHistoryMessage, ProductContext } from '../../shared/chatTypes'
+import type { ChatAction, ChatApiResponse, ChatHistoryMessage, ProductContext } from '../../shared/chatTypes.js'
 
 export type { ChatAction, ChatHistoryMessage, ProductContext }
 

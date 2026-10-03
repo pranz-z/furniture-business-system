@@ -1,10 +1,10 @@
-import { detectActions } from './actions'
-import { resolveProductContext } from './businessContext'
-import { generateAssistantReply } from './geminiService'
-import { getQuickAnswer } from './quickAnswers'
-import { checkRateLimit } from './rateLimit'
-import type { ChatApiResponse } from './types'
-import { ValidationError, validateChatRequest } from './validation'
+import { detectActions } from './actions.js'
+import { resolveProductContext } from './businessContext.js'
+import { generateAssistantReply } from './geminiService.js'
+import { getQuickAnswer } from './quickAnswers.js'
+import { checkRateLimit } from './rateLimit.js'
+import type { ChatApiResponse } from './types.js'
+import { ValidationError, validateChatRequest } from './validation.js'
 
 const GENERIC_ERROR = 'Unable to respond right now.'
 const QUOTA_ERROR =
