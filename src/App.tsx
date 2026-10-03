@@ -26,18 +26,46 @@ type ChatMessage = {
 
 type ChatStatus = 'idle' | 'sending' | 'error'
 
+const CHAT_STORAGE_KEY = 'craft-form-chat-messages'
+
 const SUGGESTED_QUESTIONS = [
   'Do you make custom furniture?',
-  'How can I request a quotation?',
+  'How do I request a quote?',
   'Do you deliver around Pampanga?',
   'Can I customize the size?',
-  'How long do custom orders take?',
   'Where is your showroom?',
 ]
 
 const INITIAL_CHAT_MESSAGES: ChatMessage[] = [
-  { sender: 'assistant', text: 'Hello! How can we help you today?' },
+  { sender: 'assistant', text: 'Hi! Welcome to Craft & Form. How can I help you today?' },
+  {
+    sender: 'assistant',
+    text: 'I can help with furniture, customization, quotations, appointments, and general inquiries.',
+  },
 ]
+
+function getInitialChatMessages(): ChatMessage[] {
+  try {
+    const storedMessages = sessionStorage.getItem(CHAT_STORAGE_KEY)
+    if (!storedMessages) return INITIAL_CHAT_MESSAGES
+
+    const parsed: unknown = JSON.parse(storedMessages)
+    if (!Array.isArray(parsed)) return INITIAL_CHAT_MESSAGES
+
+    const messages = parsed.filter(
+      (entry): entry is ChatMessage =>
+        Boolean(entry) &&
+        typeof entry === 'object' &&
+        ((entry as Record<string, unknown>).sender === 'customer' ||
+          (entry as Record<string, unknown>).sender === 'assistant') &&
+        typeof (entry as Record<string, unknown>).text === 'string',
+    )
+    return messages.length ? messages : INITIAL_CHAT_MESSAGES
+  } catch (error) {
+    console.warn('[chat] Could not restore conversation from this session.', error)
+    return INITIAL_CHAT_MESSAGES
+  }
+}
 
 type CustomerTab = 'overview' | 'orders' | 'quotes' | 'appointments' | 'messages' | 'saved' | 'notifications' | 'profile'
 type CartItem = { productId: number; quantity: number }
@@ -172,14 +200,14 @@ function App() {
   const [cart, setCart] = useState<CartItem[]>([])
   const [savedProducts, setSavedProducts] = useState<number[]>([])
   const [chatOpen, setChatOpen] = useState(false)
-  const [chatMode, setChatMode] = useState<'ai' | 'human'>('ai')
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>(INITIAL_CHAT_MESSAGES)
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>(getInitialChatMessages)
   const [chatInput, setChatInput] = useState('')
   const [chatStatus, setChatStatus] = useState<ChatStatus>('idle')
-  const [chatError, setChatError] = useState('')
+  const [unreadCount, setUnreadCount] = useState(0)
   const [chatProduct, setChatProduct] = useState<Product | null>(null)
   const chatBodyRef = useRef<HTMLDivElement | null>(null)
   const chatSendingRef = useRef(false)
+  const chatOpenRef = useRef(false)
   const [cartMessage, setCartMessage] = useState('')
   const [checkoutForm, setCheckoutForm] = useState(defaultCheckoutForm)
   const [quoteForm, setQuoteForm] = useState(defaultQuoteForm)
@@ -204,13 +232,23 @@ function App() {
   useEffect(() => {
     const shouldLockScroll = mobileMenuOpen || cartOpen || chatOpen
     document.body.style.overflow = shouldLockScroll ? 'hidden' : ''
-    document.body.style.touchAction = shouldLockScroll ? 'none' : ''
 
     return () => {
       document.body.style.overflow = ''
-      document.body.style.touchAction = ''
     }
   }, [mobileMenuOpen, cartOpen, chatOpen])
+
+  useEffect(() => {
+    chatOpenRef.current = chatOpen
+  }, [chatOpen])
+
+  useEffect(() => {
+    try {
+      sessionStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(chatMessages))
+    } catch (error) {
+      console.warn('[chat] Could not save conversation to this session.', error)
+    }
+  }, [chatMessages])
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -337,11 +375,22 @@ function App() {
   }
 
   const showCustomerMessages = chatMessages.filter((message) => message.sender === 'customer')
-  const showSuggestions = chatMode === 'ai' && showCustomerMessages.length === 0 && chatStatus !== 'sending'
+  const showSuggestions = showCustomerMessages.length === 0 && chatStatus !== 'sending'
+
+  const handleContactTeam = () => {
+    setChatOpen(false)
+    chatOpenRef.current = false
+    setActiveView('site')
+    setCustomerSubView('home')
+    window.setTimeout(() => {
+      document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }, 50)
+  }
 
   const handleChatAction = (action: ChatAction) => {
     if (action === 'quote') {
       setChatOpen(false)
+      chatOpenRef.current = false
       setQuoteSubmitted(false)
       if (chatProduct) {
         setSelectedProductId(chatProduct.id)
@@ -353,83 +402,48 @@ function App() {
 
     if (action === 'appointment') {
       setChatOpen(false)
+      chatOpenRef.current = false
       setAppointmentSubmitted(false)
       setAccountTab('appointments')
       setCustomerSubView('account')
       return
     }
 
-    if (action === 'human') {
-      handleTalkToStaff()
-      return
-    }
-
-    if (action === 'contact') {
-      setChatOpen(false)
-      setCustomerSubView('home')
-      window.setTimeout(() => {
-        document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-      }, 50)
-    }
+    handleContactTeam()
   }
 
   const sendChatMessage = async (rawMessage: string) => {
     const trimmed = rawMessage.trim()
     if (!trimmed || chatSendingRef.current) return
 
-    if (chatMode === 'human') {
-      setChatMessages((prev) => [
-        ...prev,
-        { sender: 'customer', text: trimmed },
-        {
-          sender: 'assistant',
-          text: 'Thanks for your message. Our customer service team has been notified and will follow up from the business portal.',
-          actions: ['contact'],
-        },
-      ])
-      setChatInput('')
-      setChatError('')
-      return
-    }
-
     chatSendingRef.current = true
     setChatStatus('sending')
-    setChatError('')
     setChatInput('')
 
     const history = buildChatHistory(chatMessages)
     setChatMessages((prev) => [...prev, { sender: 'customer', text: trimmed }])
 
-    const result = await sendSupportMessage({
-      message: trimmed,
-      history,
-      product: chatProduct,
-    })
+    try {
+      const result = await sendSupportMessage({
+        message: trimmed,
+        history,
+        product: chatProduct,
+      })
 
-    if (result.success) {
-      setChatMessages((prev) => [
-        ...prev,
-        {
-          sender: 'assistant',
-          text: result.message,
-          actions: result.actions,
-        },
-      ])
-      setChatStatus('idle')
-    } else {
-      setChatMessages((prev) => [
-        ...prev,
-        {
-          sender: 'assistant',
-          text: result.message,
-          actions: result.actions,
-        },
-      ])
-      setChatError(result.message)
-      setChatStatus('error')
+      const assistantMessage = result.success
+        ? { sender: 'assistant' as const, text: result.message, actions: result.actions }
+        : {
+            sender: 'assistant' as const,
+            text: "Sorry, I'm unable to respond right now. You can try again or contact our team directly.",
+            actions: ['contact', 'quote'] as ChatAction[],
+          }
+
+      setChatMessages((prev) => [...prev, assistantMessage])
+      setChatStatus(result.success ? 'idle' : 'error')
+      if (!chatOpenRef.current) setUnreadCount((count) => count + 1)
+    } finally {
+      chatSendingRef.current = false
     }
-
-    chatSendingRef.current = false
   }
 
   const handleSendMessage = () => {
@@ -440,43 +454,13 @@ function App() {
     if (!selectedProduct) return
 
     setChatProduct(selectedProduct)
-    setChatMode('ai')
     handleOpenChat()
-    setChatStatus('idle')
-    setChatError('')
-    setChatMessages([
-      {
-        sender: 'assistant',
-        text: `You're asking about: ${selectedProduct.name}. What would you like to know?`,
-      },
-    ])
-  }
-
-  const handleTalkToStaff = () => {
-    handleOpenChat()
-    setChatMode('human')
-    setChatStatus('idle')
-    setChatError('')
-    setChatMessages((prev) => [
-      ...prev,
-      {
-        sender: 'assistant',
-        text: 'Of course. I can connect you with our team for assistance.',
-        actions: ['contact'],
-      },
-      {
-        sender: 'assistant',
-        text: 'A staff member has been notified. You can also reach us through the contact details on this page.',
-        actions: ['contact'],
-      },
-    ])
   }
 
   const handleOpenChat = () => {
     setChatOpen(true)
-    setChatMode('ai')
-    setChatStatus('idle')
-    setChatError('')
+    chatOpenRef.current = true
+    setUnreadCount(0)
   }
 
   const handleQuoteSubmit = (event: FormEvent) => {
@@ -1411,41 +1395,87 @@ function App() {
             </section>
           )}
 
-          <div className="chat-widget">
+          <div className={`chat-widget${chatOpen ? ' is-open' : ''}`}>
             {chatOpen && (
-              <div className="chat-panel">
+              <section
+                id="customer-chat-dialog"
+                className="chat-panel"
+                role="dialog"
+                aria-modal="false"
+                aria-label="Craft & Form customer assistance chat"
+              >
                 <div className="chat-header">
-                  <div>
-                    <strong>{chatMode === 'ai' ? 'Craft & Form Assistant' : 'Human Support'}</strong>
-                    <span>{chatMode === 'ai' ? 'Online now' : 'Staff is connecting'}</span>
+                  <span className="chat-header-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M20 11.5a7.5 7.5 0 0 1-7.5 7.5H5l1.8-3.1A7.5 7.5 0 1 1 20 11.5Z" />
+                      <path d="M9 11.5h.01M12.5 11.5h.01M16 11.5h.01" />
+                    </svg>
+                  </span>
+                  <div className="chat-header-copy">
+                    <strong>Craft & Form Assistant</strong>
+                    <span><i className="chat-online-indicator" /> Furniture & custom order assistance</span>
                   </div>
-                  <button onClick={() => setChatOpen(false)}>×</button>
+                  <div className="chat-header-controls">
+                    <button type="button" aria-label="Minimize chat" onClick={() => { setChatOpen(false); chatOpenRef.current = false }}>−</button>
+                    <button type="button" aria-label="Close chat" onClick={() => { setChatOpen(false); chatOpenRef.current = false }}>×</button>
+                  </div>
                 </div>
-                <div className="chat-body">
+                <div className="chat-body" ref={chatBodyRef} aria-live="polite" aria-relevant="additions text">
+                  {chatProduct && (
+                    <div className="chat-product-context">
+                      <span>You're asking about</span>
+                      <strong>{chatProduct.name}</strong>
+                      <span>Starting at {formatCurrency(chatProduct.price)} · {chatProduct.material}</span>
+                      <span>{chatProduct.availability} · Customizable</span>
+                    </div>
+                  )}
                   {chatMessages.map((message, index) => (
                     <div key={`${message.sender}-${index}`} className={`chat-bubble ${message.sender}`}>
                       {message.text}
                     </div>
                   ))}
+                  {chatStatus === 'sending' && (
+                    <div className="chat-typing" role="status">Craft & Form Assistant is typing...</div>
+                  )}
                 </div>
                 {showSuggestions && (
                   <div className="chat-suggestions">
                     {SUGGESTED_QUESTIONS.map((question) => (
-                      <button key={question} type="button" onClick={() => setChatInput(question)}>{question}</button>
+                      <button key={question} type="button" onClick={() => { void sendChatMessage(question) }}>{question}</button>
                     ))}
                   </div>
                 )}
-                {chatError && <div className="chat-error">{chatError}</div>}
-                <div className="chat-input-row">
-                  <input value={chatInput} onChange={(event) => setChatInput(event.target.value)} placeholder="Type your message..." />
-                  <button type="button" onClick={handleSendMessage}>Send</button>
-                </div>
+                <form className="chat-input-row" onSubmit={(event) => { event.preventDefault(); handleSendMessage() }}>
+                  <input
+                    aria-label="Message Craft & Form Assistant"
+                    value={chatInput}
+                    onChange={(event) => setChatInput(event.target.value)}
+                    placeholder="Ask us anything..."
+                    disabled={chatStatus === 'sending'}
+                  />
+                  <button type="submit" disabled={chatStatus === 'sending' || !chatInput.trim()}>Send</button>
+                </form>
                 <div className="chat-footer-actions">
                   <button type="button" className="secondary-btn" onClick={() => handleChatAction('quote')}>Request Custom Quote</button>
-                  <button type="button" className="ghost-btn" onClick={() => handleChatAction('appointment')}>Book a Showroom Visit</button>
-                  <button type="button" className="ghost-btn" onClick={() => handleChatAction('human')}>Talk to a Staff Member</button>
+                  <button type="button" className="ghost-btn" onClick={handleContactTeam}>Talk to Our Team</button>
                 </div>
-              </div>
+              </section>
+            )}
+            {!chatOpen && (
+              <button
+                type="button"
+                className="chat-launcher"
+                aria-label="Open customer assistance chat"
+                aria-expanded={chatOpen}
+                aria-controls="customer-chat-dialog"
+                onClick={handleOpenChat}
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M20 11.5a7.5 7.5 0 0 1-7.5 7.5H5l1.8-3.1A7.5 7.5 0 1 1 20 11.5Z" />
+                  <path d="M9 11.5h.01M12.5 11.5h.01M16 11.5h.01" />
+                </svg>
+                {unreadCount > 0 && <span className="chat-unread-badge" aria-label={`${unreadCount} unread assistant replies`}>{unreadCount}</span>}
+              </button>
             )}
           </div>
 
