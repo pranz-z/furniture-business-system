@@ -23,6 +23,22 @@ This repository currently uses:
 
 This is not a deployed production backend or a live multi-user system. The current application is a local front-end business workflow experience designed for presentation, interaction, and stakeholder review.
 
+## Design
+
+The storefront is built on one idea: the workshop's own timber and its quote docket set the page's rhythm. Each chapter of the home page is a flat field in the colour of the material it sells, and each one carries the numbers a quotation actually carries — timber, size, lead time, docket number.
+
+- **Direction**: colour chapters, from the `design-taste-frontend` direction sheet (seed 470511411). The palette was redrawn once, from candy colours to the workshop's own materials: ink `#171310`, bone `#e4e1d8`, narra `#7a3a20`, mahogany `#3a1c16`, acacia `#c9b490`, steel `#c3c6c2`.
+- **Type**: Hanken Grotesk, weights 400 and 500, five size steps (`--t-display`, `--t-head`, `--t-lead`, `--t-body`, `--t-small`), no second family.
+- **Live thing**: the “Build a piece” chapter computes an estimate from the same base prices and lead times the catalogue uses, then hands the result to the quotation form.
+- **Motion**: the hero photograph opens with a shutter clip, sections rise in on entry (armed by script, so nothing hides without it), and the room mosaic drifts slowly. All of it is transform/opacity only and drops out under `prefers-reduced-motion`.
+- **Business portal**: the admin screen keeps the same type and colour but follows app-screen conventions — denser tables, quiet borders, charts drawn from the demo records.
+
+Design tokens live in `src/index.css`; components in `src/App.css`.
+
+### Image credits
+
+Photographs in `public/img` are placeholder stock from [Unsplash](https://unsplash.com) and do not show this workshop's work; they are cropped into the layout and should be replaced with the company's own shoot before launch. The hero's hardwood surface and the second grain texture are “Red wooden furniture interior surface” and “Surface wooden furniture interior design texture” by Titus Tscharntke, public domain, via Wikimedia Commons. The joinery plate is “Plan, coupes et élévations d'un chevalet” by A.-J. Roubo, *L'Art du Menuisier* (1775), public domain, via Wikimedia Commons. Provenance for every downloaded asset is recorded in `assets/credits.json`.
+
 ## Key Features
 
 ### Customer Experience

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type FormEvent } from 'react'
 import './App.css'
 import { adminSalesData, categories, inquiryVolumeData, popularProducts, projects } from './data/mockData'
 import {
@@ -115,81 +115,117 @@ const defaultAppointmentForm = {
   purpose: 'Product Viewing',
 }
 
-const CategoryIcon = ({ icon }: { icon: string }) => {
-  const sharedProps = {
-    viewBox: '0 0 36 36',
-    fill: 'none',
-    stroke: 'currentColor',
-    strokeWidth: 1.8,
-    strokeLinecap: 'round' as const,
-    strokeLinejoin: 'round' as const,
-    'aria-hidden': true,
-  }
-
-  switch (icon) {
-    case 'sofa':
-      return (
-        <svg {...sharedProps} width="36" height="36">
-          <path d="M8 19.5h20a3 3 0 0 1 3 3v3H5v-3a3 3 0 0 1 3-3Z" />
-          <path d="M10 19.5V14a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v5.5" />
-          <path d="M8 25.5v2.5M28 25.5v2.5M12 13.5h12" />
-        </svg>
-      )
-    case 'dining':
-      return (
-        <svg {...sharedProps} width="36" height="36">
-          <path d="M7 13.5h22M10.5 13.5V10.5h15v3M9 18h18a2 2 0 0 1 2 2v2H7v-2a2 2 0 0 1 2-2Z" />
-          <path d="M12 23v5M24 23v5M7 26.5h22" />
-        </svg>
-      )
-    case 'bed':
-      return (
-        <svg {...sharedProps} width="36" height="36">
-          <path d="M6 21.5h24a2 2 0 0 1 2 2V25H4v-1.5a2 2 0 0 1 2-2Z" />
-          <path d="M9 19V12.5a2.5 2.5 0 0 1 2.5-2.5h13a2.5 2.5 0 0 1 2.5 2.5V19" />
-          <path d="M6 25v3M30 25v3M10 15.5h16" />
-        </svg>
-      )
-    case 'desk':
-      return (
-        <svg {...sharedProps} width="36" height="36">
-          <path d="M7 12.5h22a2 2 0 0 1 2 2v7H5v-7a2 2 0 0 1 2-2Z" />
-          <path d="M9 21.5V27M27 21.5V27M5 27h26" />
-          <path d="M13 12.5V8.5M23 12.5V8.5" />
-        </svg>
-      )
-    case 'cabinet':
-      return (
-        <svg {...sharedProps} width="36" height="36">
-          <path d="M9 8.5h18a2 2 0 0 1 2 2v17a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2v-17a2 2 0 0 1 2-2Z" />
-          <path d="M9 15.5h18M13.5 8.5v19M22.5 8.5v19" />
-        </svg>
-      )
-    case 'outdoor':
-      return (
-        <svg {...sharedProps} width="36" height="36">
-          <path d="M7 23.5h22a2 2 0 0 1 2 2v2H5v-2a2 2 0 0 1 2-2Z" />
-          <path d="M12 23.5V15.5a1.5 1.5 0 0 1 1.5-1.5h9a1.5 1.5 0 0 1 1.5 1.5v8" />
-          <path d="M9 14.5h18M10 10.5l3 3M26 10.5l-3 3" />
-        </svg>
-      )
-    case 'custom':
-      return (
-        <svg {...sharedProps} width="36" height="36">
-          <path d="M9 27.5V21M18 27.5V10.5M27 27.5V16.5" />
-          <path d="M7 19.5h4M16 8.5h4M25 14.5h4" />
-          <path d="M9 8.5l3 3 6-6 9 9" />
-        </svg>
-      )
-    default:
-      return (
-        <svg {...sharedProps} width="36" height="36">
-          <circle cx="18" cy="18" r="10" />
-          <path d="M18 8.5v19M8.5 18h19" />
-        </svg>
-      )
-  }
+/* Photographs are placeholders from Unsplash, cropped into the layout; the
+   engraving is a public-domain plate (Roubo, L'Art du Menuisier, 1775). */
+const PRODUCT_PHOTOS: Record<number, string> = {
+  1: '/img/interior.jpg',
+  2: '/img/sofa-room.jpg',
+  3: '/img/sofa-room.jpg',
+  4: '/img/hero-room.jpg',
+  5: '/img/office.jpg',
+  6: '/img/kitchen.jpg',
+  7: '/img/sofa-room.jpg',
+  8: '/img/chairs.jpg',
+  9: '/img/interior.jpg',
+  10: '/img/office.jpg',
+  11: '/img/chairs.jpg',
+  12: '/img/kitchen.jpg',
+  13: '/img/sofa-room.jpg',
+  14: '/img/exterior.jpg',
+  15: '/img/interior.jpg',
+  16: '/img/office.jpg',
+  17: '/img/hero-room.jpg',
+  18: '/img/kitchen.jpg',
+  19: '/img/sofa-room.jpg',
+  20: '/img/exterior.jpg',
 }
+
+const photoFor = (productId: number) => PRODUCT_PHOTOS[productId] ?? '/img/interior.jpg'
+
+const PROJECT_PHOTOS: Record<number, string> = {
+  1: '/img/interior.jpg',
+  2: '/img/chairs.jpg',
+  3: '/img/office.jpg',
+  4: '/img/hero-room.jpg',
+  5: '/img/chairs.jpg',
+  6: '/img/kitchen.jpg',
+}
+
+const projectPhoto = (projectId: number) => PROJECT_PHOTOS[projectId] ?? '/img/interior.jpg'
+
+const PLATE_PHOTO = '/img/roubo-chevalet.png'
+
+/* The build estimate: the workshop's own base prices and lead times, scaled by
+   timber, size and finish. It is a starting figure, not a quotation. */
+type PieceKind = 'Dining table' | 'Bed frame' | 'Cabinet run' | 'Desk'
+
+type Timber = 'Narra' | 'Acacia' | 'Mahogany'
+
+const TIMBERS: Record<Timber, { factor: number; extraWeeks: number }> = {
+  Narra: { factor: 1.28, extraWeeks: 1 },
+  Acacia: { factor: 1, extraWeeks: 0 },
+  Mahogany: { factor: 1.14, extraWeeks: 0 },
+}
+
+const KINDS: Record<PieceKind, { base: number; weeks: [number, number]; sizes: { label: string; factor: number; dims: string }[] }> = {
+  'Dining table': {
+    base: 18500,
+    weeks: [4, 6],
+    sizes: [
+      { label: '4 seats', factor: 0.88, dims: '140 × 80 cm' },
+      { label: '6 seats', factor: 1, dims: '180 × 90 cm' },
+      { label: '8 seats', factor: 1.24, dims: '220 × 100 cm' },
+    ],
+  },
+  'Bed frame': {
+    base: 26800,
+    weeks: [6, 8],
+    sizes: [
+      { label: 'Single', factor: 0.82, dims: '190 × 90 cm' },
+      { label: 'Double', factor: 1, dims: '190 × 137 cm' },
+      { label: 'Queen', factor: 1.18, dims: '200 × 160 cm' },
+    ],
+  },
+  'Cabinet run': {
+    base: 28600,
+    weeks: [5, 7],
+    sizes: [
+      { label: 'Two doors', factor: 0.84, dims: '120 × 60 × 220 cm' },
+      { label: 'Three doors', factor: 1, dims: '180 × 60 × 220 cm' },
+      { label: 'Four doors', factor: 1.22, dims: '240 × 60 × 220 cm' },
+    ],
+  },
+  Desk: {
+    base: 19800,
+    weeks: [4, 5],
+    sizes: [
+      { label: '1.2 m', factor: 0.9, dims: '120 × 60 cm' },
+      { label: '1.5 m', factor: 1, dims: '150 × 70 cm' },
+      { label: '1.8 m', factor: 1.15, dims: '180 × 75 cm' },
+    ],
+  },
+}
+
+const FINISHES = [
+  { label: 'Natural, matte', factor: 1 },
+  { label: 'Hand-rubbed oil', factor: 1.08 },
+  { label: 'Lacquered', factor: 1.14 },
+]
+
+function buildEstimate(kind: PieceKind, timber: Timber, sizeIndex: number, finishIndex: number) {
+  const config = KINDS[kind]
+  const size = config.sizes[sizeIndex] ?? config.sizes[0]
+  const finish = FINISHES[finishIndex] ?? FINISHES[0]
+  const price = Math.round((config.base * TIMBERS[timber].factor * size.factor * finish.factor) / 100) * 100
+  const lowWeeks = config.weeks[0] + TIMBERS[timber].extraWeeks
+  const highWeeks = config.weeks[1] + TIMBERS[timber].extraWeeks
+  return { price, weeks: `${lowWeeks}–${highWeeks} weeks`, dims: size.dims, finish: finish.label }
+}
+
+const TOWNS = ['Angeles', 'San Fernando', 'Mabalacat', 'Clark', 'Porac', 'Bacolor', 'Mexico', 'Guagua']
+
+/* Row heights for the uneven work wall, cycled so no two neighbours match. */
+const WORK_HEIGHTS = [260, 360, 220, 300]
 
 function App() {
   const [activeView, setActiveView] = useState<'site' | 'admin'>('site')
@@ -225,9 +261,91 @@ function App() {
   const [sortFilter, setSortFilter] = useState('featured')
   const [cartOpen, setCartOpen] = useState(false)
 
+  /* The build estimate on the home page. */
+  const [buildKind, setBuildKind] = useState<PieceKind>('Dining table')
+  const [buildTimber, setBuildTimber] = useState<Timber>('Narra')
+  const [buildSize, setBuildSize] = useState(1)
+  const [buildFinish, setBuildFinish] = useState(0)
+  const [visitForm, setVisitForm] = useState({ name: '', contact: '' })
+  const [visitSent, setVisitSent] = useState(false)
+
+  const estimate = useMemo(
+    () => buildEstimate(buildKind, buildTimber, buildSize, buildFinish),
+    [buildKind, buildTimber, buildSize, buildFinish],
+  )
+
+  const buildSizes = KINDS[buildKind].sizes
+
+  const handleBuildKind = (kind: PieceKind) => {
+    setBuildKind(kind)
+    setBuildSize(1)
+  }
+
+  const handleBuildToQuote = () => {
+    const size = buildSizes[buildSize] ?? buildSizes[0]
+    setQuoteSubmitted(false)
+    setQuoteForm((prev) => ({
+      ...prev,
+      productName: `${buildKind} in ${buildTimber.toLowerCase()}`,
+      preferredSize: size.dims,
+      material: buildTimber === 'Narra' ? 'Solid Narra' : buildTimber,
+      finish: estimate.finish,
+      requirements: `Built from the estimate on the site: ${buildKind}, ${buildTimber}, ${size.label}, ${estimate.finish}.`,
+    }))
+    setSelectedProductId(1)
+    setCustomerSubView('quote')
+    window.scrollTo({ top: 0, behavior: 'auto' })
+  }
+
+  const handleVisitRequest = (event: FormEvent) => {
+    event.preventDefault()
+    if (!visitForm.name.trim()) return
+    setVisitSent(true)
+    setDemoState((current) =>
+      addAppointmentRequest(current, {
+        name: visitForm.name,
+        phone: visitForm.contact,
+        email: visitForm.contact.includes('@') ? visitForm.contact : '',
+        date: new Date(Date.now() + 86400000).toISOString().slice(0, 10),
+        time: '10:30 AM',
+        purpose: 'Product Viewing',
+      }),
+    )
+  }
+
   useEffect(() => {
     persistDemoState(demoState)
   }, [demoState])
+
+  /* Entrances. This class is added by script, so with no script nothing hides. */
+  useEffect(() => {
+    const root = document.documentElement
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+
+    root.classList.add('motion-armed')
+    const targets = Array.from(document.querySelectorAll<HTMLElement>('[data-reveal]'))
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-in')
+            observer.unobserve(entry.target)
+          }
+        })
+      },
+      { rootMargin: '0px 0px -12% 0px', threshold: 0.12 },
+    )
+
+    targets.forEach((target) => {
+      if (target.getBoundingClientRect().top < window.innerHeight * 0.92) {
+        target.classList.add('is-in')
+      } else {
+        observer.observe(target)
+      }
+    })
+
+    return () => observer.disconnect()
+  }, [customerSubView, activeView])
 
   useEffect(() => {
     const shouldLockScroll = mobileMenuOpen || cartOpen || chatOpen
@@ -343,6 +461,16 @@ function App() {
   const handleOpenProduct = (productId: number) => {
     setSelectedProductId(productId)
     setCustomerSubView('product')
+    window.scrollTo({ top: 0, behavior: 'auto' })
+  }
+
+  const goToSection = (sectionId: string) => {
+    setActiveView('site')
+    setCustomerSubView('home')
+    setMobileMenuOpen(false)
+    window.setTimeout(() => {
+      document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }, 60)
   }
 
   const handleAddToCart = (productId: number) => {
@@ -603,9 +731,11 @@ function App() {
 
   return (
     <div className="app-shell">
+      {activeView === 'site' && (
+        <>
       <header className="topbar">
         <div className="brand-wrap">
-          <div className="brand-mark">CF</div>
+          <span className="brand-mark" aria-hidden="true">CF</span>
           <div>
             <div className="brand-name">Craft & Form</div>
             <div className="brand-subtitle">Pampanga Furniture Co.</div>
@@ -613,17 +743,17 @@ function App() {
         </div>
 
         <nav className="nav" aria-label="Main navigation">
-          <button type="button" className="nav-link" onClick={() => { setCustomerSubView('home'); setActiveView('site'); setMobileMenuOpen(false) }}>Home</button>
-          <button type="button" className="nav-link" onClick={() => { setCustomerSubView('catalog'); setActiveView('site'); setMobileMenuOpen(false) }}>Shop</button>
-          <button type="button" className="nav-link" onClick={() => { setCustomerSubView('quote'); setActiveView('site'); setMobileMenuOpen(false) }}>Custom Furniture</button>
-          <button type="button" className="nav-link" onClick={() => { setCustomerSubView('home'); setActiveView('site'); setMobileMenuOpen(false) }}>Projects</button>
-          <button type="button" className="nav-link" onClick={() => { setCustomerSubView('home'); setActiveView('site'); setMobileMenuOpen(false) }}>About</button>
-          <button type="button" className="nav-link" onClick={() => { setCustomerSubView('home'); setActiveView('site'); setMobileMenuOpen(false) }}>Contact</button>
+          <button type="button" className="nav-link" onClick={() => { setCustomerSubView('catalog'); setActiveView('site'); setMobileMenuOpen(false) }}>Collection</button>
+          <button type="button" className="nav-link" onClick={() => goToSection('build')}>Custom</button>
+          <button type="button" className="nav-link" onClick={() => goToSection('work')}>Work</button>
+          <button type="button" className="nav-link" onClick={() => goToSection('contact')}>Visit</button>
+          <button type="button" className="nav-link" onClick={() => { setCartOpen(true); setCustomerSubView('cart') }}>
+            Cart ({cart.reduce((sum, item) => sum + item.quantity, 0)})
+          </button>
         </nav>
 
         <div className="nav-actions desktop-actions">
-          <button className="secondary-btn" onClick={() => { setCustomerSubView('quote'); setActiveView('site') }}>Request a Quote</button>
-          <button className="primary-btn" onClick={() => setActiveView('admin')}>Business Portal</button>
+          <button type="button" className="primary-btn" onClick={() => { setQuoteSubmitted(false); setCustomerSubView('quote'); setActiveView('site') }}>Start a quote</button>
         </div>
 
         <div className="mobile-header-actions">
@@ -650,7 +780,7 @@ function App() {
           <aside className="mobile-menu-panel" role="dialog" aria-modal="true" aria-label="Mobile navigation">
             <div className="mobile-menu-header">
               <div className="brand-wrap">
-                <div className="brand-mark">CF</div>
+                <span className="brand-mark" aria-hidden="true">CF</span>
                 <div>
                   <div className="brand-name">Craft & Form</div>
                   <div className="brand-subtitle">Pampanga Furniture Co.</div>
@@ -660,16 +790,17 @@ function App() {
             </div>
 
             <nav className="mobile-menu-nav" aria-label="Mobile navigation links">
-              <button type="button" className="mobile-menu-link" onClick={() => { setCustomerSubView('home'); setActiveView('site'); setMobileMenuOpen(false) }}>Home</button>
-              <button type="button" className="mobile-menu-link" onClick={() => { setCustomerSubView('catalog'); setActiveView('site'); setMobileMenuOpen(false) }}>Shop</button>
-              <button type="button" className="mobile-menu-link" onClick={() => { setCustomerSubView('quote'); setActiveView('site'); setMobileMenuOpen(false) }}>Custom Furniture</button>
-              <button type="button" className="mobile-menu-link" onClick={() => { setCustomerSubView('home'); setActiveView('site'); setMobileMenuOpen(false) }}>Projects</button>
-              <button type="button" className="mobile-menu-link" onClick={() => { setCustomerSubView('home'); setActiveView('site'); setMobileMenuOpen(false) }}>About</button>
-              <button type="button" className="mobile-menu-link" onClick={() => { setCustomerSubView('home'); setActiveView('site'); setMobileMenuOpen(false) }}>Contact</button>
+              <button type="button" className="mobile-menu-link" onClick={() => { setCustomerSubView('catalog'); setActiveView('site'); setMobileMenuOpen(false) }}>Collection</button>
+              <button type="button" className="mobile-menu-link" onClick={() => goToSection('build')}>Custom</button>
+              <button type="button" className="mobile-menu-link" onClick={() => goToSection('work')}>Work</button>
+              <button type="button" className="mobile-menu-link" onClick={() => goToSection('contact')}>Visit</button>
               <button type="button" className="mobile-menu-link" onClick={() => { setCustomerSubView('account'); setActiveView('site'); setMobileMenuOpen(false) }}>Account</button>
-              <button type="button" className="mobile-menu-link" onClick={() => { setCustomerSubView('quote'); setActiveView('site'); setMobileMenuOpen(false) }}>Request a Quote</button>
+              <button type="button" className="mobile-menu-link" onClick={() => { setQuoteSubmitted(false); setCustomerSubView('quote'); setActiveView('site'); setMobileMenuOpen(false) }}>Start a quote</button>
             </nav>
           </aside>
+        </>
+      )}
+
         </>
       )}
 
@@ -677,175 +808,525 @@ function App() {
         <main className="site-view">
           {customerSubView === 'home' && (
             <>
-              <section id="home" className="hero-section">
-                <div className="hero-copy">
-                  <span className="eyebrow">Custom furniture & quality craftsmanship in Pampanga</span>
-                  <h1>Furniture Crafted for the Way You Live.</h1>
-                  <p>Quality furniture, custom craftsmanship, and made-to-order solutions from Pampanga.</p>
-                  <div className="hero-actions">
-                    <button type="button" className="primary-btn" onClick={() => setCustomerSubView('catalog')}>Shop Furniture</button>
-                    <button type="button" className="secondary-btn" onClick={() => setCustomerSubView('quote')}>Request Custom Furniture</button>
+              <section className="hero" id="home" aria-labelledby="hero-title">
+                <div className="hero-grid">
+                  <div className="hero-copy">
+                    <h1 id="hero-title">Furniture built to your measure</h1>
+                    <p className="hero-lede">
+                      Narra, acacia and mahogany, cut and joined on N. M. Hizon Street in Angeles City. Every piece is drawn
+                      to your room and delivered in four to six weeks.
+                    </p>
+                    <div className="hero-actions">
+                      <button
+                        type="button"
+                        className="primary-btn"
+                        onClick={() => {
+                          setCategoryFilter('all')
+                          setCustomerSubView('catalog')
+                          window.scrollTo({ top: 0, behavior: 'auto' })
+                        }}
+                      >
+                        Shop the collection
+                      </button>
+                      <button
+                        type="button"
+                        className="secondary-btn"
+                        onClick={() => {
+                          setQuoteSubmitted(false)
+                          setCustomerSubView('quote')
+                          window.scrollTo({ top: 0, behavior: 'auto' })
+                        }}
+                      >
+                        Start a quote
+                      </button>
+                    </div>
+                    <div className="hero-facts">
+                      <div>
+                        <strong>1,200 homes</strong>
+                        <span>furnished since 2019</span>
+                      </div>
+                      <div>
+                        <strong>4–6 weeks</strong>
+                        <span>measurement to delivery</span>
+                      </div>
+                      <div>
+                        <strong>4.9 of 5</strong>
+                        <span>from Google reviews</span>
+                      </div>
+                    </div>
                   </div>
-                  <div className="hero-meta">
-                    <div><strong>1,200+</strong><span>Homes furnished</span></div>
-                    <div><strong>7 yrs</strong><span>Local craftsmanship</span></div>
-                    <div><strong>4.9/5</strong><span>Client satisfaction</span></div>
+                  <div className="hero-stage">
+                    <div className="hero-disc" aria-hidden="true" />
+                    <figure className="hero-figure">
+                      <img
+                        className="hero-photo"
+                        src="/img/narra-grain.jpg"
+                        width="1600"
+                        height="1200"
+                        alt="A planed hardwood surface, hand-finished and oiled"
+                      />
+                      <img
+                        className="hero-piece"
+                        src="/img/kitchen.jpg"
+                        width="1600"
+                        height="1067"
+                        alt="A built-in kitchen run in plywood and laminate"
+                      />
+                      <figcaption className="hero-caption">
+                        <span>Hand-finished narra, and a built-in run in plywood and laminate.</span>
+                        <button type="button" className="ghost-btn" onClick={() => goToSection('process')}>
+                          See how a piece is made
+                        </button>
+                      </figcaption>
+                    </figure>
                   </div>
                 </div>
-                <div className="hero-visual">
-                  <img src="https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=80" alt="Luxury living room furniture" />
-                  <div className="floating-card">
-                    <div className="card-tag">Featured</div>
-                    <div className="card-title">Narra Dining Table</div>
-                    <div className="card-price">Starting at ₱18,500</div>
+                <p className="hero-tag">Showroom open Monday to Saturday, 9–6. Delivery across Pampanga.</p>
+              </section>
+
+              <section className="chapter chapter--bone" id="collection" aria-labelledby="rooms-title">
+                <div className="chapter-inner">
+                  <div className="chapter-head">
+                    <h2 id="rooms-title">What we build, and what it starts at</h2>
+                    <p className="chapter-note">
+                      Seven kinds of piece. The price is a finished piece at its smallest size; anything larger, or built to
+                      your wall, is quoted.
+                    </p>
+                  </div>
+                  <div className="rooms">
+                    {categories.map((category) => {
+                      const items = demoState.products.filter((product) => product.category === category.name)
+                      const from = items.length ? Math.min(...items.map((product) => product.price)) : 0
+                      return (
+                        <button
+                          key={category.name}
+                          type="button"
+                          className="room-row"
+                          data-reveal
+                          onClick={() => {
+                            setCategoryFilter(category.name)
+                            setCustomerSubView('catalog')
+                            window.scrollTo({ top: 0, behavior: 'auto' })
+                          }}
+                        >
+                          <span className="room-name">{category.name}</span>
+                          <span className="room-meta">
+                            {items.length
+                              ? `From ${formatCurrency(from)} · ${items.length} ${items.length === 1 ? 'piece' : 'pieces'}`
+                              : 'By quotation'}
+                          </span>
+                        </button>
+                      )
+                    })}
                   </div>
                 </div>
               </section>
 
-              <section className="section-block">
-                <div className="section-heading">
-                  <span className="eyebrow">Featured Categories</span>
-                  <h2>Designed to suit every room and purpose.</h2>
-                </div>
-                <div className="category-grid">
-                  {categories.map((category) => (
-                    <button type="button" key={category.name} className="category-card category-button" onClick={() => { setCategoryFilter(category.name); setCustomerSubView('catalog') }}>
-                      <div className="category-icon-wrap" aria-hidden="true">
-                        <CategoryIcon icon={category.icon} />
-                      </div>
-                      <h3>{category.name}</h3>
-                      <p>{category.description}</p>
+              <section className="chapter chapter--narra" id="pieces" aria-labelledby="pieces-title">
+                <div className="chapter-inner">
+                  <div className="chapter-head">
+                    <h2 id="pieces-title">Pieces off the workshop floor</h2>
+                    <button
+                      type="button"
+                      className="secondary-btn"
+                      onClick={() => {
+                        setCategoryFilter('all')
+                        setCustomerSubView('catalog')
+                        window.scrollTo({ top: 0, behavior: 'auto' })
+                      }}
+                    >
+                      See all twenty
                     </button>
-                  ))}
+                  </div>
+                  <div className="pieces-wall">
+                    {featuredProducts.slice(0, 6).map((product) => (
+                      <button
+                        key={product.id}
+                        type="button"
+                        className="piece"
+                        data-reveal
+                        onClick={() => handleOpenProduct(product.id)}
+                      >
+                        <img
+                          src={photoFor(product.id)}
+                          width="1600"
+                          height="1067"
+                          loading="lazy"
+                          alt={product.name}
+                        />
+                        <span className="piece-cap">
+                          <span className="piece-name">{product.name}</span>
+                          <span className="piece-facts">
+                            {formatCurrency(product.price)}
+                            <br />
+                            {product.leadTime}
+                          </span>
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                  <p className="chapter-foot">
+                    Pieces marked in stock go straight to the cart and travel in three to five days. Everything else is made
+                    to order: it starts with a quote and a free measure in the room.
+                  </p>
                 </div>
               </section>
 
-              <section id="catalog" className="section-block">
-                <div className="section-heading row-between">
-                  <div>
-                    <span className="eyebrow">Featured Products</span>
-                    <h2>Best-selling furniture crafted for modern Filipino homes.</h2>
+              <section className="chapter chapter--white" id="build" aria-labelledby="build-title">
+                <div className="chapter-inner">
+                  <div className="chapter-head">
+                    <h2 id="build-title">Build a piece, see the price</h2>
+                    <p className="chapter-note">
+                      The same numbers the workshop uses: a base price, then timber, size and finish. A quote fixes it once we
+                      have measured.
+                    </p>
                   </div>
-                  <button type="button" className="text-link inline-button" onClick={() => setCustomerSubView('catalog')}>View Catalog</button>
-                </div>
-                <div className="product-grid">
-                  {featuredProducts.map((product) => (
-                    <article key={product.id} className="product-card">
-                      <img src={product.image} alt={product.name} />
-                      <div className="product-info">
-                        <div className="product-row">
-                          <span className="product-tag">{product.category}</span>
-                          <span className="availability">{product.availability}</span>
+                  <div className="build">
+                    <div className="build-controls">
+                      <fieldset className="build-group" data-reveal>
+                        <legend>What are we building</legend>
+                        <div className="chip-row">
+                          {(Object.keys(KINDS) as PieceKind[]).map((kind) => (
+                            <button
+                              key={kind}
+                              type="button"
+                              className="chip"
+                              aria-pressed={buildKind === kind}
+                              onClick={() => handleBuildKind(kind)}
+                            >
+                              {kind}
+                            </button>
+                          ))}
                         </div>
-                        <h3>{product.name}</h3>
-                        <p className="material-line">{product.material}</p>
-                        <div className="product-row price-row">
-                          <strong>{formatCurrency(product.price)}</strong>
-                          <button type="button" className="small-btn" onClick={() => handleOpenProduct(product.id)}>View</button>
+                      </fieldset>
+                      <fieldset className="build-group" data-reveal>
+                        <legend>Timber</legend>
+                        <div className="chip-row">
+                          {(Object.keys(TIMBERS) as Timber[]).map((timber) => (
+                            <button
+                              key={timber}
+                              type="button"
+                              className="chip"
+                              aria-pressed={buildTimber === timber}
+                              onClick={() => setBuildTimber(timber)}
+                            >
+                              {timber}
+                            </button>
+                          ))}
                         </div>
+                      </fieldset>
+                      <fieldset className="build-group" data-reveal>
+                        <legend>Size</legend>
+                        <div className="chip-row">
+                          {buildSizes.map((size, index) => (
+                            <button
+                              key={size.label}
+                              type="button"
+                              className="chip"
+                              aria-pressed={buildSize === index}
+                              onClick={() => setBuildSize(index)}
+                            >
+                              {size.label} · {size.dims}
+                            </button>
+                          ))}
+                        </div>
+                      </fieldset>
+                      <fieldset className="build-group" data-reveal>
+                        <legend>Finish</legend>
+                        <div className="chip-row">
+                          {FINISHES.map((finish, index) => (
+                            <button
+                              key={finish.label}
+                              type="button"
+                              className="chip"
+                              aria-pressed={buildFinish === index}
+                              onClick={() => setBuildFinish(index)}
+                            >
+                              {finish.label}
+                            </button>
+                          ))}
+                        </div>
+                      </fieldset>
+                    </div>
+                    <div className="build-out" data-reveal aria-live="polite">
+                      <p className="build-docket">
+                        QTN-{new Date().getFullYear()}-00151 · {buildTimber} · {estimate.dims} · {estimate.finish}
+                      </p>
+                      <p className="build-price">{formatCurrency(estimate.price)}</p>
+                      <p className="build-weeks">Built in {estimate.weeks}</p>
+                      <p className="build-note">
+                        Estimate only. We measure the room first, then send a fixed quotation within one business day.
+                      </p>
+                      <div className="build-actions">
+                        <button type="button" className="primary-btn" onClick={handleBuildToQuote}>
+                          Take it to a quote
+                        </button>
+                        <button
+                          type="button"
+                          className="secondary-btn"
+                          onClick={() => {
+                            setCustomerSubView('catalog')
+                            window.scrollTo({ top: 0, behavior: 'auto' })
+                          }}
+                        >
+                          See similar pieces
+                        </button>
                       </div>
-                    </article>
-                  ))}
+                    </div>
+                  </div>
                 </div>
               </section>
 
-              <section id="projects" className="projects-section">
-                <div className="section-heading">
-                  <span className="eyebrow">Our Projects</span>
-                  <h2>Recent work across Pampanga homes and businesses.</h2>
+              <section className="chapter chapter--mahogany" id="floor" aria-labelledby="floor-title">
+                <div className="chapter-inner">
+                  <div className="mosaic" data-reveal>
+                    <img
+                      className="mosaic-img"
+                      src="/img/interior.jpg"
+                      width="1600"
+                      height="1067"
+                      loading="lazy"
+                      alt="A living and dining room furnished with wood pieces"
+                    />
+                    <div className="tile tile--head">
+                      <h2 id="floor-title">One floor, twenty pieces</h2>
+                      <span className="piece-facts">Angeles City</span>
+                    </div>
+                    <div className="tile tile--f1">
+                      <p className="tile-fact">
+                        4–6 weeks<small>from measurement to delivery</small>
+                      </p>
+                    </div>
+                    <div className="tile tile--f2">
+                      <p className="tile-fact">
+                        ₱450<small>delivery anywhere in Pampanga</small>
+                      </p>
+                    </div>
+                    <div className="tile tile--f3">
+                      <p className="tile-fact">
+                        1 business day<small>to answer a quote</small>
+                      </p>
+                    </div>
+                    <div className="tile tile--act">
+                      <button
+                        type="button"
+                        className="small-btn"
+                        onClick={() => {
+                          setCategoryFilter('all')
+                          setCustomerSubView('catalog')
+                          window.scrollTo({ top: 0, behavior: 'auto' })
+                        }}
+                      >
+                        See the pieces
+                      </button>
+                    </div>
+                  </div>
+                  <p className="mosaic-caption">
+                    Every piece leaves the floor finished, photographed and entered in a docket before it travels.
+                  </p>
                 </div>
-                <div className="project-grid">
-                  {projects.map((project) => (
-                    <article key={project.id} className="project-card">
-                      <img src={project.image} alt={project.name} />
-                      <div className="project-info">
-                        <span className="project-badge">{project.type}</span>
-                        <h3>{project.name}</h3>
-                        <p>{project.description}</p>
-                        <div className="project-location">{project.location}</div>
+              </section>
+
+              <section className="chapter chapter--acacia" id="process" aria-labelledby="process-title">
+                <div className="chapter-inner">
+                  <div className="chapter-head">
+                    <h2 id="process-title">From a measurement to a room</h2>
+                    <p className="chapter-note">
+                      Three steps and one docket number. You can follow the piece through each of them from your account.
+                    </p>
+                  </div>
+                  <div className="docket">
+                    <article className="stage" data-reveal>
+                      <div className="stage-photo">
+                        <p className="stage-dims">180 × 90 × 76</p>
                       </div>
+                      <h3 className="stage-name">Measured</h3>
+                      <p className="stage-text">
+                        We visit the room, check the door widths and the stairs, and take the sizes the piece has to fit.
+                      </p>
+                      <p className="stage-weeks">Free inside Pampanga</p>
                     </article>
-                  ))}
-                </div>
-              </section>
-
-              <section id="about" className="feature-section">
-                <div className="section-heading">
-                  <span className="eyebrow">Why Choose Us</span>
-                  <h2>Thoughtful design, reliable craftsmanship, and local expertise.</h2>
-                </div>
-                <div className="feature-grid">
-                  {[
-                    ['Craftsmanship', 'Hand-finished woodwork and durable construction with attention to detail.'],
-                    ['Custom Design', 'Furniture tailored to your home, office, or commercial space.'],
-                    ['Local Expertise', 'We understand Pampanga homes, styles, and city-specific project needs.'],
-                    ['Made-to-Order', 'Built around your dimensions, purpose, and finish preferences.'],
-                    ['Delivery & Installation', 'Full-service coordination for safe delivery and setup.'],
-                  ].map(([title, text]) => (
-                    <div key={title} className="feature-item">
-                      <span className="feature-icon">✦</span>
-                      <h3>{title}</h3>
-                      <p>{text}</p>
-                    </div>
-                  ))}
-                </div>
-              </section>
-
-              <section className="showroom-section">
-                <div className="showroom-card">
-                  <div className="showroom-copy">
-                    <span className="eyebrow">Showroom</span>
-                    <h2>Pampanga, Philippines</h2>
-                    <p>Visit our design showroom to see furniture pieces, finishes, and custom possibilities in person.</p>
-                    <div className="hours-box">
-                      <strong>Business hours</strong>
-                      <span>Monday–Saturday</span>
-                      <span>9:00 AM – 6:00 PM</span>
-                    </div>
-                    <div className="showroom-actions">
-                      <button type="button" className="secondary-btn" onClick={() => setCustomerSubView('account')}>Get Directions</button>
-                      <button type="button" className="primary-btn" onClick={() => setCustomerSubView('account')}>Book a Visit</button>
-                    </div>
-                  </div>
-                  <div className="map-placeholder">
-                    <div className="map-pin">📍</div>
-                    <div className="map-label">Pampanga, Philippines</div>
+                    <article className="stage stage--plate" data-reveal>
+                      <div className="stage-photo" style={{ '--stage-h': '46vh' } as CSSProperties}>
+                        <img
+                          src={PLATE_PHOTO}
+                          width="1920"
+                          height="2802"
+                          loading="lazy"
+                          alt="An 1775 joinery plate showing a shaving horse and the tools that shape a board"
+                        />
+                      </div>
+                      <h3 className="stage-name">Cut and joined</h3>
+                      <p className="stage-text">
+                        Narra, acacia or mahogany is sawn, jointed and hand-finished. You get a photograph of the dry fit
+                        before we glue up.
+                      </p>
+                      <p className="stage-weeks">4–6 weeks in the workshop</p>
+                    </article>
+                    <article className="stage" data-reveal>
+                      <div className="stage-photo" style={{ '--stage-h': '60vh' } as CSSProperties}>
+                        <img
+                          src="/img/sofa-room.jpg"
+                          width="1600"
+                          height="1067"
+                          loading="lazy"
+                          alt="A finished sofa and coffee table in a customer's living room"
+                        />
+                      </div>
+                      <h3 className="stage-name">Delivered and set</h3>
+                      <p className="stage-text">
+                        Two of us deliver, level the piece in the room and take the packing away with us.
+                      </p>
+                      <p className="stage-weeks">₱450 inside Pampanga</p>
+                    </article>
                   </div>
                 </div>
               </section>
 
-              <section className="contact-section" id="contact">
-                <div className="contact-card">
-                  <div>
-                    <span className="eyebrow">Contact</span>
-                    <h2>Let’s talk about your next project.</h2>
-                    <ul className="contact-list">
-                      <li>Phone: +63 917 123 4567</li>
-                      <li>Email: hello@craftandform.ph</li>
-                      <li>Facebook: @craftandformph</li>
-                      <li>Messenger: m.me/craftandformph</li>
-                      <li>Showroom: 42 N. M. Hizon St., Angeles City, Pampanga</li>
-                      <li>Business Hours: Mon-Sat, 9:00 AM – 6:00 PM</li>
-                    </ul>
+              <section className="chapter chapter--ink" id="work" aria-labelledby="work-title">
+                <div className="chapter-inner">
+                  <div className="chapter-head">
+                    <h2 id="work-title">Work around Pampanga</h2>
+                    <p className="chapter-note">Houses, cafés and offices within an hour of the workshop.</p>
                   </div>
-                  <form className="contact-form">
-                    <input placeholder="Name" />
-                    <input placeholder="Phone" />
-                    <input placeholder="Email" />
-                    <textarea rows={4} placeholder="Tell us what you're looking for" />
-                    <button className="primary-btn" type="button">Send Inquiry</button>
-                  </form>
+                  <div className="work-wall">
+                    {projects.map((project, index) => (
+                      <figure
+                        key={project.id}
+                        className="work-item"
+                        data-reveal
+                        style={{ '--work-h': `${WORK_HEIGHTS[index % WORK_HEIGHTS.length]}px` } as CSSProperties}
+                      >
+                        <div className="work-frame">
+                          <img
+                            src={projectPhoto(project.id)}
+                            width="1600"
+                            height="1067"
+                            loading="lazy"
+                            alt={`${project.name}, ${project.location}`}
+                          />
+                        </div>
+                        <figcaption className="work-cap">
+                          <span>{project.name}</span>
+                          <span>{project.location.replace(', Pampanga', '')}</span>
+                        </figcaption>
+                      </figure>
+                    ))}
+                  </div>
+                </div>
+              </section>
+
+              <section className="chapter chapter--steel" id="towns" aria-labelledby="towns-title">
+                <div className="chapter-inner">
+                  <div className="chapter-head">
+                    <h2 id="towns-title">We deliver across Pampanga</h2>
+                    <p className="chapter-note">
+                      Eight towns within an hour of the workshop. Delivery is ₱450 inside the province; outside it we quote
+                      per truck.
+                    </p>
+                  </div>
+                </div>
+                <div className="towns">
+                  <p className="towns-run">
+                    {TOWNS.map((town) => (
+                      <span key={town}>{town}</span>
+                    ))}
+                  </p>
+                </div>
+              </section>
+
+              <section className="chapter chapter--ink" id="contact" aria-labelledby="visit-title">
+                <div className="chapter-inner">
+                  <div className="visit-strip" aria-hidden="true">
+                    {['/img/hero-room.jpg', '/img/interior.jpg', '/img/sofa-room.jpg', '/img/office.jpg', '/img/kitchen.jpg', '/img/chairs.jpg', '/img/hero-room.jpg', '/img/interior.jpg'].map(
+                      (src, index) => (
+                        <img key={`${src}-${index}`} src={src} width="1600" height="1067" loading="lazy" alt="" />
+                      ),
+                    )}
+                  </div>
+                  <div className="chapter-head">
+                    <h2 id="visit-title">Visit the workshop</h2>
+                    <p className="chapter-note">
+                      42 N. M. Hizon Street, Angeles City. Two blocks from the capitol, parking at the back.
+                    </p>
+                  </div>
+                  <div className="visit-grid">
+                    <div className="visit-block">
+                      <div className="visit-lines">
+                        <a href="tel:+639171234567">+63 917 123 4567</a>
+                        <a href="mailto:hello@craftandform.ph">hello@craftandform.ph</a>
+                        <span>42 N. M. Hizon St., Angeles City, Pampanga</span>
+                      </div>
+                      <div className="visit-hours">
+                        <span>Monday to Saturday, 9:00 AM – 6:00 PM</span>
+                        <span>Closed Sunday and public holidays</span>
+                      </div>
+                    </div>
+                    <div>
+                      {visitSent ? (
+                        <div className="confirmation-card">
+                          <h3>A time in the diary</h3>
+                          <p>
+                            Thanks, {visitForm.name.split(' ')[0] || 'there'}. We will text {visitForm.contact || 'you'} to
+                            confirm a showroom visit tomorrow morning. The request is already on the workshop list.
+                          </p>
+                          <button
+                            type="button"
+                            className="secondary-btn"
+                            onClick={() => {
+                              setVisitSent(false)
+                              setVisitForm({ name: '', contact: '' })
+                            }}
+                          >
+                            Request another time
+                          </button>
+                        </div>
+                      ) : (
+                        <form className="visit-form" onSubmit={handleVisitRequest}>
+                          <label className="sr-only" htmlFor="visit-name">
+                            Your name
+                          </label>
+                          <input
+                            id="visit-name"
+                            className="visit-cell"
+                            placeholder="Your name"
+                            autoComplete="name"
+                            value={visitForm.name}
+                            onChange={(event) => setVisitForm((prev) => ({ ...prev, name: event.target.value }))}
+                            required
+                          />
+                          <label className="sr-only" htmlFor="visit-contact">
+                            Phone or email
+                          </label>
+                          <input
+                            id="visit-contact"
+                            className="visit-cell"
+                            placeholder="Phone or email"
+                            autoComplete="tel"
+                            value={visitForm.contact}
+                            onChange={(event) => setVisitForm((prev) => ({ ...prev, contact: event.target.value }))}
+                          />
+                          <button type="submit" className="visit-cell">
+                            Request a visit
+                          </button>
+                        </form>
+                      )}
+                      <p className="visit-small">
+                        We confirm showroom visits by text the same day. A custom piece starts with a free measure in the room.
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </section>
             </>
           )}
 
+
           {customerSubView === 'catalog' && (
             <section className="catalog-large catalog-pane">
               <div className="section-heading row-between">
                 <div>
-                  <span className="eyebrow">Product Catalog</span>
-                  <h2>Explore our collections.</h2>
+                  <h1>Explore our collections.</h1>
                 </div>
                 <button type="button" className="secondary-btn" onClick={() => setCustomerSubView('home')}>Back Home</button>
               </div>
@@ -889,7 +1370,7 @@ function App() {
               <div className="product-grid large-grid">
                 {displayProducts.map((product) => (
                   <article key={product.id} className="product-card premium-card">
-                    <img src={product.image} alt={product.name} />
+                    <img src={photoFor(product.id)} alt={product.name} />
                     <div className="product-info">
                       <div className="product-row">
                         <span className="product-tag">{product.category}</span>
@@ -912,16 +1393,15 @@ function App() {
             <section className="product-detail-pane">
               <div className="detail-panel detail-page">
                 <div className="detail-image-wrap">
-                  <img src={selectedProduct.image} alt={selectedProduct.name} />
+                  <img src={photoFor(selectedProduct.id)} alt={selectedProduct.name} />
                   <div className="thumb-strip">
-                    <img src={selectedProduct.image} alt="Gallery 1" />
-                    <img src={selectedProduct.image} alt="Gallery 2" />
-                    <img src={selectedProduct.image} alt="Gallery 3" />
+                    <img src={photoFor(selectedProduct.id)} alt="Gallery 1" />
+                    <img src={photoFor(selectedProduct.id)} alt="Gallery 2" />
+                    <img src={photoFor(selectedProduct.id)} alt="Gallery 3" />
                   </div>
                 </div>
                 <div className="detail-copy">
-                  <span className="eyebrow">{selectedProduct.category}</span>
-                  <h2>{selectedProduct.name}</h2>
+                  <h1>{selectedProduct.name}</h1>
                   <div className="detail-price-row">
                     <strong>{formatCurrency(selectedProduct.price)}</strong>
                     <span>Estimated lead time: {selectedProduct.leadTime}</span>
@@ -950,7 +1430,6 @@ function App() {
 
               <div className="review-box">
                 <div className="section-heading">
-                  <span className="eyebrow">Customer Reviews</span>
                   <h2>What clients say</h2>
                 </div>
                 <div className="review-list">
@@ -970,8 +1449,7 @@ function App() {
             <section className="cart-pane">
               <div className="section-heading row-between">
                 <div>
-                  <span className="eyebrow">Your Cart</span>
-                  <h2>Ready for checkout</h2>
+                  <h1>Ready for checkout</h1>
                 </div>
                 <button type="button" className="secondary-btn" onClick={() => setCustomerSubView('catalog')}>Continue Shopping</button>
               </div>
@@ -981,7 +1459,7 @@ function App() {
                   <div className="cart-list">
                     {cartItems.map((item) => (
                       <div key={item.id} className="cart-item">
-                        <img src={item.image} alt={item.name} />
+                        <img src={photoFor(item.id)} alt={item.name} />
                         <div className="cart-details">
                           <h3>{item.name}</h3>
                           <p>{formatCurrency(item.price)} × {item.quantity}</p>
@@ -1018,8 +1496,7 @@ function App() {
             <section className="checkout-pane">
               <div className="section-heading row-between">
                 <div>
-                  <span className="eyebrow">Checkout</span>
-                  <h2>Complete your order</h2>
+                  <h1>Complete your order</h1>
                 </div>
                 <button type="button" className="secondary-btn" onClick={() => setCustomerSubView('cart')}>Back</button>
               </div>
@@ -1121,8 +1598,7 @@ function App() {
             <section className="quote-pane">
               <div className="section-heading row-between">
                 <div>
-                  <span className="eyebrow">Quotation Request</span>
-                  <h2>Request a quote for {selectedProduct?.name ?? 'your product'}</h2>
+                  <h1>Request a quote for {selectedProduct?.name ?? 'your product'}</h1>
                 </div>
                 <button type="button" className="secondary-btn" onClick={() => setCustomerSubView('catalog')}>Back</button>
               </div>
@@ -1216,8 +1692,7 @@ function App() {
             <section className="account-pane">
               <div className="section-heading row-between">
                 <div>
-                  <span className="eyebrow">Customer Account</span>
-                  <h2>My profile & updates</h2>
+                  <h1>My profile & updates</h1>
                 </div>
                 <button type="button" className="secondary-btn" onClick={() => setCustomerSubView('home')}>Back</button>
               </div>
@@ -1474,6 +1949,7 @@ function App() {
                   <path d="M20 11.5a7.5 7.5 0 0 1-7.5 7.5H5l1.8-3.1A7.5 7.5 0 1 1 20 11.5Z" />
                   <path d="M9 11.5h.01M12.5 11.5h.01M16 11.5h.01" />
                 </svg>
+                <span className="chat-launcher-label">Ask us</span>
                 {unreadCount > 0 && <span className="chat-unread-badge" aria-label={`${unreadCount} unread assistant replies`}>{unreadCount}</span>}
               </button>
             )}
@@ -1493,7 +1969,7 @@ function App() {
                 <>
                   {cartItems.map((item) => (
                     <div key={item.id} className="mini-cart-item">
-                      <img src={item.image} alt={item.name} />
+                      <img src={photoFor(item.id)} alt={item.name} />
                       <div>
                         <strong>{item.name}</strong>
                         <span>{formatCurrency(item.price)} × {item.quantity}</span>
@@ -1513,12 +1989,84 @@ function App() {
               )}
             </aside>
           )}
+
+          <footer className="site-footer">
+            <div className="footer-inner">
+              <p className="footer-mark">Craft &amp; Form</p>
+              <div className="footer-grid">
+                <div className="footer-col">
+                  <strong>Shop</strong>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCategoryFilter('all')
+                      setCustomerSubView('catalog')
+                      window.scrollTo({ top: 0, behavior: 'auto' })
+                    }}
+                  >
+                    Collection
+                  </button>
+                  <button type="button" onClick={() => goToSection('build')}>
+                    Build a piece
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCartOpen(true)
+                      setCustomerSubView('cart')
+                    }}
+                  >
+                    Cart
+                  </button>
+                  <button type="button" onClick={() => { setCustomerSubView('account'); window.scrollTo({ top: 0, behavior: 'auto' }) }}>
+                    Account
+                  </button>
+                </div>
+                <div className="footer-col">
+                  <strong>Workshop</strong>
+                  <button type="button" onClick={() => goToSection('process')}>
+                    How a piece is made
+                  </button>
+                  <button type="button" onClick={() => goToSection('work')}>
+                    Work around Pampanga
+                  </button>
+                  <button type="button" onClick={() => { setActiveView('admin'); window.scrollTo({ top: 0, behavior: 'auto' }) }}>
+                    Business portal
+                  </button>
+                </div>
+                <div className="footer-col">
+                  <strong>Visit</strong>
+                  <a href="tel:+639171234567">+63 917 123 4567</a>
+                  <a href="mailto:hello@craftandform.ph">hello@craftandform.ph</a>
+                  <span>42 N. M. Hizon St., Angeles City</span>
+                  <span>Monday to Saturday, 9–6</span>
+                </div>
+              </div>
+              <p className="credits">
+                Photographs are placeholder stock from{' '}
+                <a href="https://unsplash.com" target="_blank" rel="noreferrer noopener">
+                  Unsplash
+                </a>{' '}
+                until the workshop's own shoot replaces them; none shows this workshop's work. The wood surfaces are by Titus
+                Tscharntke, public domain. The joinery plate is{' '}
+                <a
+                  href="https://commons.wikimedia.org/wiki/File:A-J_Roubo_-_L%27Art_du_Menuisier_-_Planche_350.png"
+                  target="_blank"
+                  rel="noreferrer noopener"
+                >
+                  “A-J Roubo – L'Art du Menuisier – Planche 350”
+                </a>{' '}
+                by André Jacob Roubo, public domain, via Wikimedia Commons. Prices, lead times and customer records are demo
+                data.
+              </p>
+            </div>
+          </footer>
         </main>
       ) : (
         <main className="admin-view">
           <aside className="admin-sidebar">
             <div className="brand-wrap side-brand">
-              <div className="brand-mark">CF</div>
+              <span className="brand-mark" aria-hidden="true">CF</span>
               <div>
                 <div className="brand-name">Craft & Form</div>
               </div>
@@ -1528,13 +2076,22 @@ function App() {
                 <button key={item} className={item === 'Dashboard' ? 'active' : ''}>{item}</button>
               ))}
             </nav>
+            <button
+              type="button"
+              className="secondary-btn admin-back"
+              onClick={() => {
+                setActiveView('site')
+                window.scrollTo({ top: 0, behavior: 'auto' })
+              }}
+            >
+              Back to the store
+            </button>
           </aside>
 
           <section className="admin-content">
             <div className="admin-topbar">
               <div>
-                <span className="eyebrow">Overview</span>
-                <h2>Operations Dashboard</h2>
+                <h1>Operations Dashboard</h1>
               </div>
               <button className="primary-btn">Export Report</button>
             </div>
